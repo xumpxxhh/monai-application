@@ -1,0 +1,14 @@
+{
+  "name": "web",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo \"Starting web dev server...\"",
+    "build": "echo \"Building web app...\"",
+    "lint": "echo \"Linting web app...\""
+  },
+  "dependencies": {
+    "ui": "workspace:*",
+    "config": "workspace:*"
+  }
+}

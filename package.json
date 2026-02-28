@@ -1,0 +1,34 @@
+{
+  "name": "monai-application",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "dev:auth": "turbo run dev --filter=auth",
+    "build:auth": "turbo run build --filter=auth",
+    "dev:mark-live": "turbo run dev --filter=mark-live",
+    "build:mark-live": "turbo run build --filter=mark-live",
+    "lint": "eslint . --cache",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\""
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.55.0",
+    "@typescript-eslint/parser": "^8.55.0",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "globals": "^17.3.0",
+    "prettier": "^3.8.1",
+    "turbo": "latest",
+    "typescript": "latest",
+    "typescript-eslint": "^8.55.0"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=18"
+  }
+}
