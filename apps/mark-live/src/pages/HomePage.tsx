@@ -1,10 +1,10 @@
-import { useTransactions } from '../hooks/useTransactions'
-import { Dashboard } from '../components/Dashboard'
-import { TransactionList } from '../components/TransactionList'
+import { useTransactions } from '../hooks/useTransactions';
+import { Dashboard } from '../components/Dashboard';
+import { TransactionList } from '../components/TransactionList';
 
 export function HomePage() {
-  const { transactions, categories, deleteTransaction, getSummary } = useTransactions()
-  const summary = getSummary()
+  const { transactions, categories, deleteTransaction, getSummary } = useTransactions();
+  const summary = getSummary();
 
   return (
     <div className="space-y-6">
@@ -15,5 +15,5 @@ export function HomePage() {
         onDelete={deleteTransaction}
       />
     </div>
-  )
+  );
 }

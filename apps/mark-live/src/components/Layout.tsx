@@ -1,9 +1,9 @@
-import { ReactNode } from 'react'
-import { Home, List, PlusCircle, User, PieChart } from 'lucide-react'
-import { NavLink } from 'react-router-dom'
+import { ReactNode } from 'react';
+import { Home, List, PlusCircle, User, PieChart } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
 
 interface LayoutProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {
@@ -88,5 +88,5 @@ export function Layout({ children }: LayoutProps) {
         </div>
       </nav>
     </div>
-  )
+  );
 }
