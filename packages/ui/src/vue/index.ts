@@ -1,1 +1,1 @@
-export const placeholder = 'vue components will be here'
+export const placeholder = 'vue components will be here';
