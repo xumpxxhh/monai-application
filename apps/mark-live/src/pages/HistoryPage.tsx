@@ -1,8 +1,8 @@
-import { useTransactions } from '../hooks/useTransactions'
-import { TransactionList } from '../components/TransactionList'
+import { useTransactions } from '../hooks/useTransactions';
+import { TransactionList } from '../components/TransactionList';
 
 export function HistoryPage() {
-  const { transactions, categories, deleteTransaction } = useTransactions()
+  const { transactions, categories, deleteTransaction } = useTransactions();
 
   return (
     <TransactionList
@@ -10,5 +10,5 @@ export function HistoryPage() {
       categories={categories}
       onDelete={deleteTransaction}
     />
-  )
+  );
 }

@@ -1,33 +1,33 @@
-import { useState } from 'react'
-import { Category, TransactionType } from '../types/index'
-import { Button, Input, Label } from 'ui/react'
-import { Calendar, Check, DollarSign } from 'lucide-react'
-import * as Icons from 'lucide-react'
+import { useState } from 'react';
+import { Category, TransactionType } from '../types/index';
+import { Button, Input, Label } from 'ui/react';
+import { Calendar, Check, DollarSign } from 'lucide-react';
+import * as Icons from 'lucide-react';
 
 interface AddTransactionFormProps {
-  categories: Category[]
+  categories: Category[];
   onSubmit: (data: {
-    title: string
-    amount: number
-    categoryId: string
-    date: string
-    note?: string
-    type: TransactionType
-  }) => void
-  onCancel: () => void
+    title: string;
+    amount: number;
+    categoryId: string;
+    date: string;
+    note?: string;
+    type: TransactionType;
+  }) => void;
+  onCancel: () => void;
 }
 
 export function AddTransactionForm({ categories, onSubmit, onCancel }: AddTransactionFormProps) {
-  const [type, setType] = useState<TransactionType>('expense')
-  const [title, setTitle] = useState('')
-  const [amount, setAmount] = useState('')
-  const [categoryId, setCategoryId] = useState('')
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
-  const [note, setNote] = useState('')
+  const [type, setType] = useState<TransactionType>('expense');
+  const [title, setTitle] = useState('');
+  const [amount, setAmount] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [note, setNote] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!title || !amount || !categoryId || !date) return
+    e.preventDefault();
+    if (!title || !amount || !categoryId || !date) return;
 
     onSubmit({
       title,
@@ -36,16 +36,16 @@ export function AddTransactionForm({ categories, onSubmit, onCancel }: AddTransa
       date,
       note,
       type,
-    })
-  }
+    });
+  };
 
-  const filteredCategories = categories.filter((c) => c.type === type)
+  const filteredCategories = categories.filter((c) => c.type === type);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const IconComponent = ({ name, className }: { name: string; className?: string }) => {
-    const Icon = (Icons as any)[name]
-    return Icon ? <Icon className={className} /> : <Icons.HelpCircle className={className} />
-  }
+    const Icon = (Icons as any)[name];
+    return Icon ? <Icon className={className} /> : <Icons.HelpCircle className={className} />;
+  };
 
   return (
     <div className="space-y-6">
@@ -170,5 +170,5 @@ export function AddTransactionForm({ categories, onSubmit, onCancel }: AddTransa
         </div>
       </form>
     </div>
-  )
+  );
 }

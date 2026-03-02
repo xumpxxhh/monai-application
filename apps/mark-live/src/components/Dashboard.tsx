@@ -1,10 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from 'ui/react'
-import { ArrowDownCircle, ArrowUpCircle, Wallet } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from 'ui/react';
+import { ArrowDownCircle, ArrowUpCircle, Wallet } from 'lucide-react';
 
 interface DashboardProps {
-  income: number
-  expense: number
-  balance: number
+  income: number;
+  expense: number;
+  balance: number;
 }
 
 export function Dashboard({ income, expense, balance }: DashboardProps) {
@@ -47,5 +47,5 @@ export function Dashboard({ income, expense, balance }: DashboardProps) {
         </Card>
       </div>
     </div>
-  )
+  );
 }

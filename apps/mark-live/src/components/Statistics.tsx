@@ -1,37 +1,37 @@
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
-import { Card, CardContent, CardHeader, CardTitle } from 'ui/react'
-import { Transaction, Category } from '../types/index'
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle } from 'ui/react';
+import { Transaction, Category } from '../types/index';
 
 interface StatisticsProps {
-  transactions: Transaction[]
-  categories: Category[]
+  transactions: Transaction[];
+  categories: Category[];
 }
 
 export function Statistics({ transactions, categories }: StatisticsProps) {
   const processData = (type: 'income' | 'expense') => {
-    const filtered = transactions.filter((t) => t.type === type)
+    const filtered = transactions.filter((t) => t.type === type);
     const grouped = filtered.reduce(
       (acc, curr) => {
-        const category = categories.find((c) => c.id === curr.categoryId)
-        const name = category?.name || 'Unknown'
+        const category = categories.find((c) => c.id === curr.categoryId);
+        const name = category?.name || 'Unknown';
         if (!acc[name]) {
-          acc[name] = 0
+          acc[name] = 0;
         }
-        acc[name] += curr.amount
-        return acc
+        acc[name] += curr.amount;
+        return acc;
       },
       {} as Record<string, number>,
-    )
+    );
 
     return Object.entries(grouped)
       .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-  }
+      .sort((a, b) => b.value - a.value);
+  };
 
-  const expenseData = processData('expense')
-  const incomeData = processData('income')
+  const expenseData = processData('expense');
+  const incomeData = processData('income');
 
-  const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#a855f7', '#ec4899']
+  const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#a855f7', '#ec4899'];
 
   return (
     <div className="space-y-6">
@@ -105,5 +105,5 @@ export function Statistics({ transactions, categories }: StatisticsProps) {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

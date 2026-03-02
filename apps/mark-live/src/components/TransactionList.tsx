@@ -1,12 +1,12 @@
-import { Transaction, Category } from '../types/index'
-import { Trash2 } from 'lucide-react'
-import { Button } from 'ui/react'
-import * as Icons from 'lucide-react'
+import { Transaction, Category } from '../types/index';
+import { Trash2 } from 'lucide-react';
+import { Button } from 'ui/react';
+import * as Icons from 'lucide-react';
 
 interface TransactionListProps {
-  transactions: Transaction[]
-  categories: Category[]
-  onDelete: (id: string) => void
+  transactions: Transaction[];
+  categories: Category[];
+  onDelete: (id: string) => void;
 }
 
 export function TransactionList({ transactions, categories, onDelete }: TransactionListProps) {
@@ -17,25 +17,25 @@ export function TransactionList({ transactions, categories, onDelete }: Transact
         year: 'numeric',
         month: 'long',
         day: 'numeric',
-      })
+      });
       if (!groups[date]) {
-        groups[date] = []
+        groups[date] = [];
       }
-      groups[date].push(transaction)
-      return groups
+      groups[date].push(transaction);
+      return groups;
     },
     {} as Record<string, Transaction[]>,
-  )
+  );
 
   const getCategory = (categoryId: string) => {
-    return categories.find((c) => c.id === categoryId)
-  }
+    return categories.find((c) => c.id === categoryId);
+  };
 
   const IconComponent = ({ name, className }: { name: string; className?: string }) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Icon = (Icons as any)[name]
-    return Icon ? <Icon className={className} /> : <Icons.HelpCircle className={className} />
-  }
+    const Icon = (Icons as any)[name];
+    return Icon ? <Icon className={className} /> : <Icons.HelpCircle className={className} />;
+  };
 
   return (
     <div className="space-y-6">
@@ -56,7 +56,7 @@ export function TransactionList({ transactions, categories, onDelete }: Transact
             </h3>
             <div className="space-y-3">
               {items.map((transaction) => {
-                const category = getCategory(transaction.categoryId)
+                const category = getCategory(transaction.categoryId);
                 return (
                   <div
                     key={transaction.id}
@@ -98,12 +98,12 @@ export function TransactionList({ transactions, categories, onDelete }: Transact
                       </Button>
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
           </div>
         ))
       )}
     </div>
-  )
+  );
 }
