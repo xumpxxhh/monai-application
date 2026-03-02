@@ -11,6 +11,7 @@ export interface AuthResponse {
   role?: string;
   code?: string;
   message?: string;
+  redirect_url?: string;
 }
 
 export interface ApiError {
@@ -18,3 +19,6 @@ export interface ApiError {
   message: string;
   status?: number;
 }
+
+/** 用于 catch 中、可能带 code/message 的未知错误 */
+export type CaughtAuthError = { code?: string; message?: string };

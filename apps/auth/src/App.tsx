@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 import {
   Button,
   Card,
@@ -10,75 +10,87 @@ import {
   Input,
   Label,
   toast,
-} from 'ui/react'
-import { Github, Mail } from 'lucide-react'
-import { apiRequest } from './lib/api'
-import { User, AuthResponse } from './types'
+} from 'ui/react';
+import { Github, Mail } from 'lucide-react';
+import { getAuthMessage, logout as logoutApi } from 'config';
+import { apiRequest } from './lib/api';
+import { User, AuthResponse, CaughtAuthError } from './types';
 
 export default function App() {
-  const [user, setUser] = useState<User | null>(null)
-  const [isLogin, setIsLogin] = useState(true)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [username, setUsername] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [user, setUser] = useState<User | null>(null);
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    validateToken()
-  }, [])
+    validateToken();
+  }, []);
 
   const validateToken = async () => {
     try {
-      const response = await apiRequest<User>(`/validate`, 'GET')
-      setUser(response)
+      const response = await apiRequest<User>(`/validate`, 'GET');
+      setUser(response);
     } catch (err) {
-      setUser(null)
+      setUser(null);
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
       if (isLogin) {
-        await apiRequest<AuthResponse>(`/login`, 'POST', {
+        const params = new URLSearchParams(window.location.search);
+        const redirectUri = params.get('redirect_uri');
+        const state = params.get('state');
+        const body: Record<string, string | undefined> = {
           email,
           password,
           username: username || undefined,
-        })
-        await validateToken()
-        toast.success('登录成功！')
+        };
+        if (redirectUri) body.redirect_uri = redirectUri;
+        if (state) body.server_state = state;
+        const res = await apiRequest<AuthResponse>(`/login`, 'POST', body);
+        await validateToken();
+        toast.success('登录成功！');
+        if (res.redirect_url) {
+          window.location.href = res.redirect_url as string;
+        }
       } else {
         await apiRequest(`/register`, 'POST', {
           email,
           password,
           username: username || undefined,
-        })
-        toast.success('注册成功！请登录。')
-        setIsLogin(true)
+        });
+        toast.success('注册成功！请登录。');
+        setIsLogin(true);
       }
-    } catch (err: any) {
-      toast.error(err.message || '发生错误')
+    } catch (err: unknown) {
+      const e = err as CaughtAuthError;
+      toast.error(getAuthMessage(e?.code, e?.message ?? '发生错误'));
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleLogout = async () => {
     try {
-      await apiRequest('/logout', 'POST')
-      toast.success('已退出登录')
-    } catch (err) {
-      console.error('Logout failed:', err)
-      toast.error('退出登录失败')
+      await logoutApi();
+      toast.success('已退出登录');
+    } catch (err: unknown) {
+      const e = err as CaughtAuthError;
+      console.error('Logout failed:', err);
+      toast.error(getAuthMessage(e?.code) || '退出登录失败');
     } finally {
-      setUser(null)
-      setEmail('')
-      setPassword('')
-      setUsername('')
+      setUser(null);
+      setEmail('');
+      setPassword('');
+      setUsername('');
     }
-  }
+  };
 
   if (user) {
     return (
@@ -105,7 +117,7 @@ export default function App() {
           </CardFooter>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -183,7 +195,7 @@ export default function App() {
             {isLogin ? '还没有账户？ ' : '已有账户？ '}
             <button
               onClick={() => {
-                setIsLogin(!isLogin)
+                setIsLogin(!isLogin);
               }}
               className="underline underline-offset-4 hover:text-primary"
             >
@@ -193,5 +205,5 @@ export default function App() {
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }

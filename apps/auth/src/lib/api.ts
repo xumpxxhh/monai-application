@@ -1,3 +1,5 @@
+import { AuthCode } from 'config';
+
 export const API_BASE_URL = 'http://localhost:8888/api/v1/auth';
 
 export type AuthResponse = {
@@ -16,7 +18,7 @@ export type ApiError = {
 export async function apiRequest<T>(
   endpoint: string,
   method: string = 'GET',
-  body?: unknown
+  body?: unknown,
 ): Promise<T> {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -39,7 +41,7 @@ export async function apiRequest<T>(
 
   if (!response.ok) {
     throw {
-      code: data.code || 'UNKNOWN_ERROR',
+      code: data.code || AuthCode.INTERNAL_ERROR,
       message: data.message || 'An unknown error occurred',
       status: response.status,
     };
