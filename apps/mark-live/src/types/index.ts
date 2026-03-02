@@ -1,3 +1,35 @@
+// 认证与 API 相关
+export interface User {
+  id: number;
+  role: string;
+  email?: string;
+  username?: string;
+}
+
+/** /me 接口返回的完整用户信息，全局可访问 */
+export interface UserInfo {
+  id: number;
+  username: string;
+  email: string;
+  role: string;
+  created_at: string;
+}
+
+export interface AuthResponse {
+  token?: string;
+  id?: number;
+  role?: string;
+  code?: string;
+  message?: string;
+}
+
+export interface ApiError {
+  code: string;
+  message: string;
+  status?: number;
+}
+
+// 业务类型
 export type TransactionType = 'income' | 'expense';
 
 export interface Category {

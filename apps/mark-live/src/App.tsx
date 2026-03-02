@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import type { User } from './types';
-import { validateAuth, requestLogin, exchangeTokenByCode } from './lib/api';
+import type { User, UserInfo } from './types';
+import { validateAuth, requestLogin, exchangeTokenByCode, getUserInfo } from './lib/api';
 import { AuthProvider } from './contexts/AuthContext';
 import { Layout } from './components/Layout';
 import { HomePage } from './pages/HomePage';
@@ -12,6 +12,7 @@ import { ProfilePage } from './pages/ProfilePage';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,6 +25,9 @@ export default function App() {
       validateAuth()
         .then((response) => {
           setUser(response);
+          return getUserInfo()
+            .then((info) => setUserInfo(info as UserInfo))
+            .catch(() => setUserInfo(null));
         })
         .catch(() => {
           requestLogin(window.location.href);
@@ -47,7 +51,7 @@ export default function App() {
   }
 
   return (
-    <AuthProvider user={user}>
+    <AuthProvider user={user} userInfo={userInfo}>
       <BrowserRouter>
         <Layout>
           <Routes>

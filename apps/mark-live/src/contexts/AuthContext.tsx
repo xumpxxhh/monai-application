@@ -1,14 +1,23 @@
 import { createContext, useContext, type ReactNode } from 'react';
-import type { User } from '../types';
+import type { User, UserInfo } from '../types';
 
-type AuthContextValue = {
+export type AuthContextValue = {
   user: User | null;
+  userInfo: UserInfo | null;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ user, children }: { user: User | null; children: ReactNode }) {
-  return <AuthContext.Provider value={{ user }}>{children}</AuthContext.Provider>;
+export function AuthProvider({
+  user,
+  userInfo,
+  children,
+}: {
+  user: User | null;
+  userInfo: UserInfo | null;
+  children: ReactNode;
+}) {
+  return <AuthContext.Provider value={{ user, userInfo }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth(): AuthContextValue {

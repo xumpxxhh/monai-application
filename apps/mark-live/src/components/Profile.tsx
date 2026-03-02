@@ -1,18 +1,10 @@
 import { Card, CardContent, Button } from 'ui/react';
 import { User, Settings, LogOut, ChevronRight, HelpCircle } from 'lucide-react';
-import { logout, requestLogin, getUserInfo } from '../lib/api';
-import { useEffect, useState } from 'react';
-
-type UserInfo = {
-  id: number;
-  username: string;
-  email: string;
-  role: string;
-  created_at: string;
-};
+import { logout, requestLogin } from '../lib/api';
+import { useAuth } from '../contexts/AuthContext';
 
 export function Profile() {
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const { userInfo } = useAuth();
 
   const handleLogout = async () => {
     await logout();
@@ -22,12 +14,6 @@ export function Profile() {
     { icon: Settings, label: '设置' },
     { icon: HelpCircle, label: '帮助与反馈' },
   ];
-
-  useEffect(() => {
-    getUserInfo()
-      .then((response) => setUserInfo(response as UserInfo))
-      .catch(() => setUserInfo(null));
-  }, []);
 
   return (
     <div className="space-y-6">
