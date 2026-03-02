@@ -1,4 +1,14 @@
+import type { User } from '../types';
+import {
+  validateAuth as validateAuthFromConfig,
+  requestLogin as requestLoginFromConfig,
+  logout as logoutFromConfig,
+  exchangeTokenByCode as exchangeTokenByCodeFromConfig,
+  getUserInfo as getUserInfoFromConfig,
+} from 'config';
+
 export const API_BASE_URL = 'http://localhost:8888/api/v1/mark-live';
+const APP_NAME = 'mark-live';
 
 export type AuthResponse = {
   token?: string;
@@ -16,7 +26,7 @@ export type ApiError = {
 export async function apiRequest<T>(
   endpoint: string,
   method: string = 'GET',
-  body?: unknown
+  body?: unknown,
 ): Promise<T> {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -47,3 +57,20 @@ export async function apiRequest<T>(
 
   return data as T;
 }
+
+/** 身份校验（复用 config 公共方法） */
+export const validateAuth = (): Promise<User> => validateAuthFromConfig() as Promise<User>;
+
+/** 请求登录并跳转（复用 config 公共方法，带本应用 clientId） */
+export const requestLogin = (redirectUri: string): Promise<void> =>
+  requestLoginFromConfig(redirectUri, { clientId: APP_NAME });
+
+/** 登出（复用 config 公共方法） */
+export const logout = (): Promise<void> => logoutFromConfig();
+
+/** 用 code 置换 token（复用 config 公共方法） */
+export const exchangeTokenByCode = (): Promise<{ token?: string; [k: string]: unknown }> =>
+  exchangeTokenByCodeFromConfig({ clientId: APP_NAME });
+
+/** 获取用户信息（复用 config 公共方法） */
+export const getUserInfo = () => getUserInfoFromConfig();

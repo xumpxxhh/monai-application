@@ -1,5 +1,5 @@
-import { Profile } from '../components/Profile'
+import { Profile } from '../components/Profile';
 
 export function ProfilePage() {
-  return <Profile />
+  return <Profile />;
 }

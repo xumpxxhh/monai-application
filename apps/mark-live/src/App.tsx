@@ -1,23 +1,64 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { Layout } from './components/Layout'
-import { HomePage } from './pages/HomePage'
-import { HistoryPage } from './pages/HistoryPage'
-import { AddPage } from './pages/AddPage'
-import { StatisticsPage } from './pages/StatisticsPage'
-import { ProfilePage } from './pages/ProfilePage'
+import { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import type { User } from './types';
+import { validateAuth, requestLogin, exchangeTokenByCode } from './lib/api';
+import { AuthProvider } from './contexts/AuthContext';
+import { Layout } from './components/Layout';
+import { HomePage } from './pages/HomePage';
+import { HistoryPage } from './pages/HistoryPage';
+import { AddPage } from './pages/AddPage';
+import { StatisticsPage } from './pages/StatisticsPage';
+import { ProfilePage } from './pages/ProfilePage';
 
 export default function App() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      if (code) {
+        await exchangeTokenByCode();
+      }
+      validateAuth()
+        .then((response) => {
+          setUser(response);
+        })
+        .catch(() => {
+          requestLogin(window.location.href);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    })();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-muted-foreground">校验身份中…</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
   return (
-    <BrowserRouter>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/history" element={<HistoryPage />} />
-          <Route path="/add" element={<AddPage />} />
-          <Route path="/statistics" element={<StatisticsPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-        </Routes>
-      </Layout>
-    </BrowserRouter>
-  )
+    <AuthProvider user={user}>
+      <BrowserRouter>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/history" element={<HistoryPage />} />
+            <Route path="/add" element={<AddPage />} />
+            <Route path="/statistics" element={<StatisticsPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+          </Routes>
+        </Layout>
+      </BrowserRouter>
+    </AuthProvider>
+  );
 }
