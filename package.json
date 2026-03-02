@@ -9,6 +9,8 @@
     "build:auth": "turbo run build --filter=auth",
     "dev:mark-live": "turbo run dev --filter=mark-live",
     "build:mark-live": "turbo run build --filter=mark-live",
+    "dev:mark-live-server": "turbo run dev --filter=mark-live-server",
+    "build:mark-live-server": "turbo run build --filter=mark-live-server",
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\""
