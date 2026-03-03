@@ -1,8 +1,10 @@
 /**
  * 公共认证客户端：身份校验与请求登录，供各 app 复用
+ * 来自根目录 .env.development / .env.production 的 VITE_AUTH_API_BASE_URL
  */
 
-export const AUTH_API_BASE_URL = 'http://localhost:8888/api/v1/auth';
+export const AUTH_API_BASE_URL =
+  (import.meta.env?.VITE_AUTH_API_BASE_URL as string) || 'http://localhost:8888/api/v1/auth';
 
 export interface AuthUser {
   id: number;

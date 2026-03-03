@@ -1,6 +1,7 @@
 import { AuthCode } from 'config';
 
-export const API_BASE_URL = 'http://localhost:8888/api/v1/auth';
+export const API_BASE_URL =
+  (import.meta.env.VITE_AUTH_API_BASE_URL as string) || 'http://localhost:8888/api/v1/auth';
 
 export type AuthResponse = {
   token?: string;
