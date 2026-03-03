@@ -1,21 +1,33 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'ui/react';
 import { useTransactions } from '../hooks/useTransactions';
 import { AddTransactionForm } from '../components/AddTransactionForm';
 
 export function AddPage() {
   const { categories, addTransaction } = useTransactions();
   const navigate = useNavigate();
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleAddTransaction = (data: {
+  const handleAddTransaction = async (data: {
     title: string;
     amount: number;
-    categoryId: string;
-    date: string;
-    note?: string;
+    category: string;
+    time: string;
+    remark?: string;
     type: 'income' | 'expense';
+    imageFile?: File;
   }) => {
-    addTransaction(data);
-    navigate('/');
+    setSubmitting(true);
+    try {
+      await addTransaction(data);
+      toast.success('保存成功');
+      navigate('/');
+    } catch {
+      toast.error('保存失败，请重试');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -23,6 +35,7 @@ export function AddPage() {
       categories={categories}
       onSubmit={handleAddTransaction}
       onCancel={() => navigate('/')}
+      submitting={submitting}
     />
   );
 }

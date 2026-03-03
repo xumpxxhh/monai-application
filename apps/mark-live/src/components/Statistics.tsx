@@ -12,8 +12,8 @@ export function Statistics({ transactions, categories }: StatisticsProps) {
     const filtered = transactions.filter((t) => t.type === type);
     const grouped = filtered.reduce(
       (acc, curr) => {
-        const category = categories.find((c) => c.id === curr.categoryId);
-        const name = category?.name || 'Unknown';
+        const cat = categories.find((c) => c.id === curr.category);
+        const name = cat?.name || 'Unknown';
         if (!acc[name]) {
           acc[name] = 0;
         }
@@ -53,7 +53,7 @@ export function Statistics({ transactions, categories }: StatisticsProps) {
                     paddingAngle={5}
                     dataKey="value"
                   >
-                    {expenseData.map((entry, index) => (
+                    {expenseData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -88,7 +88,7 @@ export function Statistics({ transactions, categories }: StatisticsProps) {
                     paddingAngle={5}
                     dataKey="value"
                   >
-                    {incomeData.map((entry, index) => (
+                    {incomeData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>

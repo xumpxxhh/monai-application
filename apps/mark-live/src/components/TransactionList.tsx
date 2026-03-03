@@ -1,34 +1,47 @@
+import { useState } from 'react';
 import { Transaction, Category } from '../types/index';
 import { Trash2 } from 'lucide-react';
-import { Button } from 'ui/react';
+import { Button, toast } from 'ui/react';
 import * as Icons from 'lucide-react';
 
 interface TransactionListProps {
   transactions: Transaction[];
   categories: Category[];
-  onDelete: (id: string) => void;
+  onDelete: (id: string) => void | Promise<void>;
 }
 
 export function TransactionList({ transactions, categories, onDelete }: TransactionListProps) {
-  // Group transactions by date
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
+    try {
+      await onDelete(id);
+    } catch {
+      toast.error('删除失败，请重试');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+  // Group transactions by time (与后端 bill.time 一致)
   const groupedTransactions = transactions.reduce(
     (groups, transaction) => {
-      const date = new Date(transaction.date).toLocaleDateString('zh-CN', {
+      const timeLabel = new Date(transaction.time).toLocaleDateString('zh-CN', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
       });
-      if (!groups[date]) {
-        groups[date] = [];
+      if (!groups[timeLabel]) {
+        groups[timeLabel] = [];
       }
-      groups[date].push(transaction);
+      groups[timeLabel].push(transaction);
       return groups;
     },
     {} as Record<string, Transaction[]>,
   );
 
-  const getCategory = (categoryId: string) => {
-    return categories.find((c) => c.id === categoryId);
+  const getCategory = (category: string) => {
+    return categories.find((c) => c.id === category);
   };
 
   const IconComponent = ({ name, className }: { name: string; className?: string }) => {
@@ -49,14 +62,14 @@ export function TransactionList({ transactions, categories, onDelete }: Transact
           <p className="text-xs">点击下方 + 按钮开始记账</p>
         </div>
       ) : (
-        Object.entries(groupedTransactions).map(([date, items]) => (
-          <div key={date} className="space-y-3">
+        Object.entries(groupedTransactions).map(([timeLabel, items]) => (
+          <div key={timeLabel} className="space-y-3">
             <h3 className="text-sm font-medium text-gray-500 sticky top-14 bg-gray-50 py-1 z-0">
-              {date}
+              {timeLabel}
             </h3>
             <div className="space-y-3">
               {items.map((transaction) => {
-                const category = getCategory(transaction.categoryId);
+                const cat = getCategory(transaction.category);
                 return (
                   <div
                     key={transaction.id}
@@ -64,19 +77,26 @@ export function TransactionList({ transactions, categories, onDelete }: Transact
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className={`p-2 rounded-full ${
-                          category?.color || 'bg-gray-100 text-gray-600'
+                        className={`p-2 rounded-full shrink-0 ${
+                          cat?.color || 'bg-gray-100 text-gray-600'
                         }`}
                       >
-                        <IconComponent name={category?.icon || 'HelpCircle'} className="w-5 h-5" />
+                        <IconComponent name={cat?.icon || 'HelpCircle'} className="w-5 h-5" />
                       </div>
+                      {transaction.imageUrl && (
+                        <img
+                          src={transaction.imageUrl}
+                          alt="凭证"
+                          className="w-10 h-10 rounded-lg object-cover border border-gray-100 shrink-0"
+                        />
+                      )}
                       <div>
                         <p className="font-medium text-gray-900">
-                          {transaction.title || category?.name || 'Unknown'}
+                          {transaction.title || cat?.name || 'Unknown'}
                         </p>
                         <div className="flex flex-col text-xs text-gray-500">
-                          {transaction.title && category?.name && <span>{category.name}</span>}
-                          {transaction.note && <span>{transaction.note}</span>}
+                          {transaction.title && cat?.name && <span>{cat.name}</span>}
+                          {transaction.remark && <span>{transaction.remark}</span>}
                         </div>
                       </div>
                     </div>
@@ -92,7 +112,8 @@ export function TransactionList({ transactions, categories, onDelete }: Transact
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-gray-400 hover:text-red-500"
-                        onClick={() => onDelete(transaction.id)}
+                        onClick={() => handleDelete(transaction.id)}
+                        disabled={deletingId === transaction.id}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

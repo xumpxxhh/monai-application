@@ -44,10 +44,11 @@ export interface Transaction {
   id: string;
   title: string;
   amount: number;
-  categoryId: string;
-  date: string; // ISO string
-  note?: string;
+  category: string;
+  time: string; // ISO date string，与后端 bill.time 一致
+  remark?: string;
   type: TransactionType;
+  imageUrl?: string; // 消费/收入凭证图片
   createdAt: number; // timestamp
 }
 

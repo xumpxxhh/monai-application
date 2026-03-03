@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Category, TransactionType } from '../types/index';
 import { Button, Input, Label } from 'ui/react';
-import { Calendar, Check, DollarSign } from 'lucide-react';
+import { Calendar, Camera, Check, DollarSign, ImagePlus, X } from 'lucide-react';
 import * as Icons from 'lucide-react';
 
 interface AddTransactionFormProps {
@@ -9,41 +9,71 @@ interface AddTransactionFormProps {
   onSubmit: (data: {
     title: string;
     amount: number;
-    categoryId: string;
-    date: string;
-    note?: string;
+    category: string;
+    time: string;
+    remark?: string;
     type: TransactionType;
-  }) => void;
+    imageFile?: File;
+  }) => void | Promise<void>;
   onCancel: () => void;
+  submitting?: boolean;
 }
 
-export function AddTransactionForm({ categories, onSubmit, onCancel }: AddTransactionFormProps) {
+export function AddTransactionForm({
+  categories,
+  onSubmit,
+  onCancel,
+  submitting,
+}: AddTransactionFormProps) {
   const [type, setType] = useState<TransactionType>('expense');
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [note, setNote] = useState('');
+  const [category, setCategory] = useState('');
+  const [time, setTime] = useState(new Date().toISOString().split('T')[0]);
+  const [remark, setRemark] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+    e.target.value = '';
+  };
+
+  const clearImage = () => {
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImageFile(null);
+    setImagePreview(null);
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
+    if (galleryInputRef.current) galleryInputRef.current.value = '';
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !amount || !categoryId || !date) return;
+    if (!title || !amount || !category || !time) return;
 
     onSubmit({
       title,
       amount: parseFloat(amount),
-      categoryId,
-      date,
-      note,
+      category,
+      time,
+      remark,
       type,
+      imageFile: imageFile ?? undefined,
     });
   };
 
   const filteredCategories = categories.filter((c) => c.type === type);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const IconComponent = ({ name, className }: { name: string; className?: string }) => {
-    const Icon = (Icons as any)[name];
+    const Icon = (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[
+      name
+    ];
     return Icon ? <Icon className={className} /> : <Icons.HelpCircle className={className} />;
   };
 
@@ -104,28 +134,26 @@ export function AddTransactionForm({ categories, onSubmit, onCancel }: AddTransa
         <div className="space-y-2">
           <Label>分类</Label>
           <div className="grid grid-cols-4 gap-3">
-            {filteredCategories.map((category) => (
+            {filteredCategories.map((cat) => (
               <button
-                key={category.id}
+                key={cat.id}
                 type="button"
-                onClick={() => setCategoryId(category.id)}
+                onClick={() => setCategory(cat.id)}
                 className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${
-                  categoryId === category.id
+                  category === cat.id
                     ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
                     : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
                 }`}
               >
                 <div
-                  className={`p-2 rounded-full mb-2 ${
-                    category.color || 'bg-gray-100 text-gray-600'
-                  }`}
+                  className={`p-2 rounded-full mb-2 ${cat.color || 'bg-gray-100 text-gray-600'}`}
                 >
-                  <IconComponent name={category.icon} className="w-5 h-5" />
+                  <IconComponent name={cat.icon} className="w-5 h-5" />
                 </div>
                 <span className="text-xs font-medium text-gray-600 truncate w-full text-center">
-                  {category.name}
+                  {cat.name}
                 </span>
-                {categoryId === category.id && (
+                {category === cat.id && (
                   <div className="absolute top-1 right-1 bg-primary text-white rounded-full p-0.5">
                     <Check className="w-3 h-3" />
                   </div>
@@ -136,36 +164,101 @@ export function AddTransactionForm({ categories, onSubmit, onCancel }: AddTransa
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="date">日期</Label>
+          <Label htmlFor="time">日期</Label>
           <div className="relative">
             <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
             <Input
-              id="date"
+              id="time"
               type="date"
               className="pl-9"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
               required
             />
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="note">备注 (可选)</Label>
+          <Label htmlFor="remark">备注 (可选)</Label>
           <Input
-            id="note"
+            id="remark"
             placeholder="这笔钱是做什么的？"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
+            value={remark}
+            onChange={(e) => setRemark(e.target.value)}
           />
         </div>
 
+        <div className="space-y-2">
+          <Label>消费/收入凭证 (可选)</Label>
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={handleImageChange}
+          />
+          <input
+            ref={galleryInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageChange}
+          />
+          {imagePreview ? (
+            <div className="relative inline-block">
+              <img
+                src={imagePreview}
+                alt="凭证预览"
+                className="h-24 w-24 object-cover rounded-lg border border-gray-200"
+              />
+              <button
+                type="button"
+                onClick={clearImage}
+                className="absolute -top-2 -right-2 p-1 bg-gray-800 text-white rounded-full hover:bg-gray-600"
+                aria-label="移除图片"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => cameraInputRef.current?.click()}
+                className="gap-2"
+              >
+                <Camera className="w-4 h-4" />
+                拍照
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => galleryInputRef.current?.click()}
+                className="gap-2"
+              >
+                <ImagePlus className="w-4 h-4" />
+                从相册选择
+              </Button>
+            </div>
+          )}
+        </div>
+
         <div className="pt-4 flex gap-3">
-          <Button type="button" variant="outline" className="flex-1" onClick={onCancel}>
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1"
+            onClick={onCancel}
+            disabled={submitting}
+          >
             取消
           </Button>
-          <Button type="submit" className="flex-1">
-            保存
+          <Button type="submit" className="flex-1" disabled={submitting}>
+            {submitting ? '保存中…' : '保存'}
           </Button>
         </div>
       </form>

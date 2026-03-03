@@ -1,3 +1,15 @@
+## 环境变量
+
+由根目录 `.env.development` / `.env.production` 统一管理，Turbo 通过 `globalEnv` 传递：
+
+- `VITE_AUTH_API_BASE_URL`：认证服务地址
+- `VITE_MARK_LIVE_API_BASE_URL`：mark-live API 地址
+- `VITE_APP_NAME`：应用标识（clientId）
+
+---
+
+## 数据模型
+
 id(bigint 自增、非空、主键):
 
 uid(bigint 非空):
