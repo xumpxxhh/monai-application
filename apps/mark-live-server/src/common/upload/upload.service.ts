@@ -1,5 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
+import FormData from 'form-data';
 
 /** 图片上传返回结构（与上传服务约定一致） */
 export interface UploadResult {
@@ -12,6 +14,7 @@ export interface UploadResult {
  * 图片上传服务 - 调用外部上传 API
  * POST /api/v1/auth/upload (multipart: fileName, file)
  * 需鉴权：Cookie auth_token 或 Authorization Bearer
+ * 使用 axios + form-data，兼容 Node 16+
  */
 @Injectable()
 export class UploadService {
@@ -42,35 +45,27 @@ export class UploadService {
     const url = this.getUploadUrl();
     const formData = new FormData();
     formData.append('fileName', safeName);
-    formData.append(
-      'file',
-      new Blob([new Uint8Array(file.buffer)], { type: file.mimetype }),
-      safeName,
-    );
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        Cookie: `auth_token=${authToken}`,
-        // 不设置 Content-Type，让 fetch 自动添加 multipart boundary
-      },
-      body: formData,
+    formData.append('file', file.buffer, {
+      filename: safeName,
+      contentType: file.mimetype,
     });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      let errJson: { message?: string } = {};
-      try {
-        errJson = JSON.parse(errText);
-      } catch {
-        // ignore
-      }
+    const response = await axios.post<UploadResult>(url, formData, {
+      headers: {
+        ...formData.getHeaders(),
+        Cookie: `auth_token=${authToken}`,
+      },
+      validateStatus: () => true,
+    });
+
+    if (response.status !== 200) {
+      const errData = response.data as { message?: string };
       throw new BadRequestException(
-        errJson.message || `上传失败: ${response.status} ${response.statusText}`,
+        errData?.message || `上传失败: ${response.status} ${response.statusText}`,
       );
     }
 
-    const data = (await response.json()) as UploadResult;
+    const data = response.data;
     if (!data.path || !data.access_url) {
       throw new BadRequestException('上传服务返回格式异常');
     }

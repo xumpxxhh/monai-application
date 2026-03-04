@@ -2,23 +2,32 @@
   "name": "mark-live-server",
   "private": true,
   "version": "0.0.0",
+  "engines": {
+    "node": ">=16"
+  },
   "scripts": {
     "build": "nest build",
+    "build:bundle": "nest build && ncc build dist/main.js -o dist-bundle",
     "dev": "nest start --watch",
     "start": "nest start",
     "start:prod": "node dist/main",
+    "start:bundle": "node dist-bundle/index.js",
+    "pm2:start": "pm2 start ecosystem.config.cjs",
+    "pm2:stop": "pm2 stop mark-live-server",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "db:init": "node scripts/run-init-db.mjs"
   },
   "dependencies": {
-    "@nestjs/common": "^10.4.15",
-    "@nestjs/config": "^3.2.0",
-    "@nestjs/core": "^10.4.15",
-    "@nestjs/platform-express": "^10.4.15",
-    "@nestjs/typeorm": "^10.0.2",
+    "@nestjs/common": "^9.4.3",
+    "@nestjs/config": "^2.3.1",
+    "@nestjs/core": "^9.4.3",
+    "@nestjs/platform-express": "^9.4.3",
+    "@nestjs/typeorm": "^9.0.1",
+    "axios": "^1.6.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "cookie-parser": "^1.4.6",
+    "form-data": "^4.0.0",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.11.0",
     "reflect-metadata": "^0.2.2",
@@ -26,12 +35,13 @@
     "typeorm": "^0.3.20"
   },
   "devDependencies": {
-    "@nestjs/cli": "^10.4.9",
+    "@nestjs/cli": "^9.4.3",
     "@types/cookie-parser": "^1.4.7",
-    "@types/express": "^5.0.0",
+    "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/multer": "^2.0.0",
-    "@types/node": "^20.10.6",
+    "@types/node": "^16.18.0",
+    "@vercel/ncc": "^0.38.4",
     "typescript": "^5.3.3"
   }
 }
