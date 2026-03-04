@@ -8,8 +8,9 @@ import {
 } from 'config';
 
 export const API_BASE_URL =
-  (import.meta.env.VITE_MARK_LIVE_API_BASE_URL as string) || 'http://localhost:8889/api/v1/mark-live';
-const APP_NAME = (import.meta.env.VITE_APP_NAME as string) || 'mark-live';
+  (import.meta.env.VITE_MARK_LIVE_API_BASE_URL as string) ||
+  'http://localhost:8889/api/v1/mark-live';
+const APP_NAME = (import.meta.env.VITE_APP_MARK_LIVE_NAME as string) || 'mark-live';
 
 export type AuthResponse = {
   token?: string;

@@ -3,7 +3,8 @@
   "globalEnv": [
     "VITE_AUTH_API_BASE_URL",
     "VITE_MARK_LIVE_API_BASE_URL",
-    "VITE_APP_NAME"
+    "VITE_APP_MARK_LIVE_NAME",
+    "VITE_APP_MARK_LIVE_BASE_PATH"
   ],
   "tasks": {
     "build": {

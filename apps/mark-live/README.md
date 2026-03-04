@@ -4,7 +4,8 @@
 
 - `VITE_AUTH_API_BASE_URL`：认证服务地址
 - `VITE_MARK_LIVE_API_BASE_URL`：mark-live API 地址
-- `VITE_APP_NAME`：应用标识（clientId）
+- `VITE_APP_MARK_LIVE_NAME`：应用标识（clientId）
+- `VITE_APP_MARK_LIVE_BASE_PATH`：路由 base 路径（仅生产，如 /mark）
 
 ---
 

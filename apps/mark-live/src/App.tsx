@@ -52,7 +52,7 @@ export default function App() {
 
   return (
     <AuthProvider user={user} userInfo={userInfo}>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.VITE_APP_MARK_LIVE_BASE_PATH || ''}>
         <Layout>
           <Routes>
             <Route path="/" element={<HomePage />} />
