@@ -4,6 +4,7 @@ node_modules
 
 # Production
 dist
+dist-bundle
 build
 
 # Next.js
