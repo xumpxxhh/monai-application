@@ -9,7 +9,7 @@ async function bootstrap() {
   app.use(cookieParser());
   app.setGlobalPrefix('api/v1/mark-live');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
-  const port = process.env.PORT ? Number(process.env.PORT) : 8888;
+  const port = process.env.PORT ? Number(process.env.PORT) : 8889;
   await app.listen(port);
   console.log(`mark-live-server running at http://localhost:${port}/api/v1/mark-live`);
 }
