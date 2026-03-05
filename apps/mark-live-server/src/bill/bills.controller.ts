@@ -69,7 +69,7 @@ export class BillsController {
       const defaultName = `${safeTitle}_${createAt}.${ext}`;
       const fileName = body.fileName ?? file.originalname ?? defaultName;
       const result = await this.uploadService.saveImage(fileName, file, token);
-      imageUrl = result.access_url;
+      imageUrl = result.route;
     }
     return this.billsService.create(user.id, { ...body, imageUrl: imageUrl ?? undefined });
   }
