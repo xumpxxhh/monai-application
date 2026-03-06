@@ -73,9 +73,9 @@ export function TransactionList({ transactions, categories, onDelete }: Transact
                 return (
                   <div
                     key={transaction.id}
-                    className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+                    className="flex items-center justify-between gap-2 p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow min-w-0"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div
                         className={`p-2 rounded-full shrink-0 ${
                           cat?.color || 'bg-gray-100 text-gray-600'
@@ -90,19 +90,19 @@ export function TransactionList({ transactions, categories, onDelete }: Transact
                           className="w-10 h-10 rounded-lg object-cover border border-gray-100 shrink-0"
                         />
                       )}
-                      <div>
-                        <p className="font-medium text-gray-900">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-gray-900 truncate">
                           {transaction.title || cat?.name || 'Unknown'}
                         </p>
-                        <div className="flex flex-col text-xs text-gray-500">
+                        <div className="flex flex-col text-xs text-gray-500 truncate">
                           {transaction.title && cat?.name && <span>{cat.name}</span>}
                           {transaction.remark && <span>{transaction.remark}</span>}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 shrink-0">
                       <span
-                        className={`font-semibold ${
+                        className={`font-semibold whitespace-nowrap ${
                           transaction.type === 'income' ? 'text-green-600' : 'text-gray-900'
                         }`}
                       >

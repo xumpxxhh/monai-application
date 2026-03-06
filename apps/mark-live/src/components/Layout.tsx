@@ -8,11 +8,11 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   return (
-    <div className="flex flex-col h-screen bg-gray-50 text-gray-900 overflow-hidden">
-      <header className="bg-white shadow-sm flex-none z-10">
-        <div className="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-primary">生活记账</h1>
-          <div className="text-sm text-gray-500">
+    <div className="flex flex-col h-screen w-full min-w-0 max-w-full bg-gray-50 text-gray-900 overflow-hidden">
+      <header className="w-full min-w-0 flex-shrink-0 bg-white shadow-sm z-10">
+        <div className="w-full max-w-md mx-auto px-4 py-3 flex justify-between items-center min-w-0">
+          <h1 className="text-xl font-bold text-primary truncate min-w-0 mr-2">生活记账</h1>
+          <div className="text-sm text-gray-500 flex-shrink-0">
             {new Date().toLocaleDateString('zh-CN', {
               month: 'long',
               day: 'numeric',
@@ -22,12 +22,12 @@ export function Layout({ children }: LayoutProps) {
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-md mx-auto p-4 overflow-y-auto pb-24 scrollbar-hide">
-        {children}
+      <main className="flex-1 w-full min-w-0 overflow-x-hidden overflow-y-auto pb-24 scrollbar-hide">
+        <div className="w-full max-w-md mx-auto min-w-0 min-h-0 p-4 box-border">{children}</div>
       </main>
 
-      <nav className="flex-none bg-white border-t border-gray-200 pb-safe z-10">
-        <div className="max-w-md mx-auto flex justify-around items-center h-16">
+      <nav className="w-full min-w-0 flex-shrink-0 bg-white border-t border-gray-200 pb-safe z-10">
+        <div className="w-full max-w-md mx-auto min-w-0 flex justify-around items-center h-16">
           <NavLink
             to="/"
             className={({ isActive }) =>

@@ -14,6 +14,7 @@ import {
 import { Github, Mail } from 'lucide-react';
 import { getAuthMessage, logout as logoutApi } from 'config';
 import { apiRequest } from './lib/api';
+import { verifyPassphrase } from './lib/passphrase';
 import { User, AuthResponse, CaughtAuthError } from './types';
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passphrase, setPassphrase] = useState('');
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -49,6 +51,7 @@ export default function App() {
         const body: Record<string, string | undefined> = {
           email,
           password,
+          passphrase: passphrase || undefined,
           username: username || undefined,
         };
         if (redirectUri) body.redirect_uri = redirectUri;
@@ -60,9 +63,15 @@ export default function App() {
           window.location.href = res.redirect_url as string;
         }
       } else {
+        const valid = await verifyPassphrase(passphrase);
+        if (!valid) {
+          toast.error('通行证无效，无法注册');
+          return;
+        }
         await apiRequest(`/register`, 'POST', {
           email,
           password,
+          passphrase: passphrase || undefined,
           username: username || undefined,
         });
         toast.success('注册成功！请登录。');
@@ -88,6 +97,7 @@ export default function App() {
       setUser(null);
       setEmail('');
       setPassword('');
+      setPassphrase('');
       setUsername('');
     }
   };
@@ -183,6 +193,16 @@ export default function App() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="passphrase">通行证</Label>
+              <Input
+                id="passphrase"
+                type="text"
+                placeholder="请输入通行证"
+                value={passphrase}
+                onChange={(e) => setPassphrase(e.target.value)}
               />
             </div>
             <Button className="w-full" type="submit" disabled={loading}>

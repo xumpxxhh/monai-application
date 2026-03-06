@@ -5,7 +5,7 @@ import { useTransactions } from '../hooks/useTransactions';
 import { AddTransactionForm } from '../components/AddTransactionForm';
 
 export function AddPage() {
-  const { categories, addTransaction } = useTransactions();
+  const { categories, addTransaction, error: transactionError } = useTransactions();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
 
@@ -23,8 +23,8 @@ export function AddPage() {
       await addTransaction(data);
       toast.success('保存成功');
       navigate('/');
-    } catch {
-      toast.error('保存失败，请重试');
+    } catch (err) {
+      toast.error('保存失败，请重试：' + transactionError + err);
     } finally {
       setSubmitting(false);
     }
