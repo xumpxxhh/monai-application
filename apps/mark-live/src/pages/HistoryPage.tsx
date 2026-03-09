@@ -2,8 +2,7 @@ import { useTransactions } from '../hooks/useTransactions';
 import { TransactionList } from '../components/TransactionList';
 
 export function HistoryPage() {
-  const { transactions, categories, loading, error, refetch, deleteTransaction } =
-    useTransactions();
+  const { transactions, categories, loading, deleteTransaction } = useTransactions();
 
   if (loading) {
     return (

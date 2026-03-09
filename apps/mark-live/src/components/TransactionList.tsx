@@ -3,6 +3,7 @@ import { Transaction, Category } from '../types/index';
 import { Trash2 } from 'lucide-react';
 import { Button, toast } from 'ui/react';
 import * as Icons from 'lucide-react';
+import { ImageViewer } from './ImageViewer';
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -12,6 +13,7 @@ interface TransactionListProps {
 
 export function TransactionList({ transactions, categories, onDelete }: TransactionListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const handleDelete = async (id: string) => {
     setDeletingId(id);
@@ -87,7 +89,8 @@ export function TransactionList({ transactions, categories, onDelete }: Transact
                         <img
                           src={transaction.imageUrl}
                           alt="凭证"
-                          className="w-10 h-10 rounded-lg object-cover border border-gray-100 shrink-0"
+                          className="w-10 h-10 rounded-lg object-cover border border-gray-100 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => setPreviewImage(transaction.imageUrl as string)}
                         />
                       )}
                       <div className="min-w-0 flex-1">
@@ -125,6 +128,7 @@ export function TransactionList({ transactions, categories, onDelete }: Transact
           </div>
         ))
       )}
+      {previewImage && <ImageViewer src={previewImage} onClose={() => setPreviewImage(null)} />}
     </div>
   );
 }

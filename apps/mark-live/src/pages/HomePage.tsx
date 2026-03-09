@@ -3,8 +3,7 @@ import { Dashboard } from '../components/Dashboard';
 import { TransactionList } from '../components/TransactionList';
 
 export function HomePage() {
-  const { transactions, categories, loading, error, refetch, deleteTransaction, getSummary } =
-    useTransactions();
+  const { transactions, categories, loading, deleteTransaction, getSummary } = useTransactions();
   const summary = getSummary();
 
   if (loading) {

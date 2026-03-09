@@ -2,7 +2,7 @@ import { useTransactions } from '../hooks/useTransactions';
 import { Statistics } from '../components/Statistics';
 
 export function StatisticsPage() {
-  const { transactions, categories, loading, error, refetch } = useTransactions();
+  const { transactions, categories, loading } = useTransactions();
 
   if (loading) {
     return (

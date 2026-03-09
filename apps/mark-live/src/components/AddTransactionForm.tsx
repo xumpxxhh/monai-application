@@ -3,6 +3,7 @@ import { Category, TransactionType } from '../types/index';
 import { Button, Input, Label } from 'ui/react';
 import { Calendar, Camera, Check, DollarSign, ImagePlus, X } from 'lucide-react';
 import * as Icons from 'lucide-react';
+import { ImageViewer } from './ImageViewer';
 
 interface AddTransactionFormProps {
   categories: Category[];
@@ -33,6 +34,7 @@ export function AddTransactionForm({
   const [remark, setRemark] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [showViewer, setShowViewer] = useState(false);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
@@ -211,7 +213,8 @@ export function AddTransactionForm({
                 <img
                   src={imagePreview}
                   alt="凭证预览"
-                  className="h-24 w-24 object-cover rounded-lg border border-gray-200"
+                  className="h-24 w-24 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => setShowViewer(true)}
                 />
                 <button
                   type="button"
@@ -258,6 +261,9 @@ export function AddTransactionForm({
           </Button>
         </div>
       </form>
+      {showViewer && imagePreview && (
+        <ImageViewer src={imagePreview} onClose={() => setShowViewer(false)} />
+      )}
     </div>
   );
 }
