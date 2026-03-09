@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Transaction, Category, DEFAULT_CATEGORIES } from '../types/index';
 import { listBills, createBillFormData, deleteBill } from '../lib/api';
+import { toast } from 'ui/react';
 
 export function useTransactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -18,6 +19,7 @@ export function useTransactions() {
     } catch (err) {
       const msg = (err as { message?: string })?.message ?? '获取账单失败';
       setError(msg);
+      toast.error(msg);
       setTransactions([]);
     } finally {
       setLoading(false);
@@ -70,10 +72,32 @@ export function useTransactions() {
     const expense = transactions
       .filter((t) => t.type === 'expense')
       .reduce((acc, curr) => acc + curr.amount, 0);
+
+    const now = new Date();
+    const todayStr = now
+      .toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })
+      .replace(/\//g, '-');
+    const currentYearStr = now.getFullYear().toString();
+    const currentMonthStr = (now.getMonth() + 1).toString().padStart(2, '0');
+    const currentYearMonthPrefix = `${currentYearStr}-${currentMonthStr}`;
+
+    const todayExpense = transactions
+      .filter((t) => t.type === 'expense' && t.time.startsWith(todayStr))
+      .reduce((acc, curr) => acc + curr.amount, 0);
+
+    const monthExpense = transactions
+      .filter((t) => t.type === 'expense' && t.time.startsWith(currentYearMonthPrefix))
+      .reduce((acc, curr) => acc + curr.amount, 0);
+
+    const currentDay = now.getDate();
+    const monthDailyAverageExpense = currentDay > 0 ? monthExpense / currentDay : 0;
+
     return {
       income,
       expense,
       balance: income - expense,
+      todayExpense,
+      monthDailyAverageExpense,
     };
   };
 

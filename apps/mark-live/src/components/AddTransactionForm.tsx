@@ -206,43 +206,39 @@ export function AddTransactionForm({
             onChange={handleImageChange}
           />
           {imagePreview ? (
-            <div className="relative inline-block max-w-full">
-              <img
-                src={imagePreview}
-                alt="凭证预览"
-                className="h-24 w-24 object-cover rounded-lg border border-gray-200 max-w-full"
-              />
-              <button
-                type="button"
-                onClick={clearImage}
-                className="absolute -top-2 -right-2 p-1 bg-gray-800 text-white rounded-full hover:bg-gray-600"
-                aria-label="移除图片"
-              >
-                <X className="w-3 h-3" />
-              </button>
+            <div className="flex justify-center w-full">
+              <div className="relative inline-block">
+                <img
+                  src={imagePreview}
+                  alt="凭证预览"
+                  className="h-24 w-24 object-cover rounded-lg border border-gray-200"
+                />
+                <button
+                  type="button"
+                  onClick={clearImage}
+                  className="absolute -top-2 -right-2 p-1 bg-gray-800 text-white rounded-full hover:bg-gray-600"
+                  aria-label="移除图片"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
             </div>
           ) : (
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
+            <div className="flex justify-center gap-4 w-full">
+              <div
                 onClick={() => cameraInputRef.current?.click()}
-                className="gap-2"
+                className="flex flex-col items-center justify-center w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:text-primary hover:border-primary hover:bg-primary/5 cursor-pointer transition-colors"
               >
-                <Camera className="w-4 h-4" />
-                拍照
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
+                <Camera className="w-6 h-6 mb-2" />
+                <span className="text-xs">拍照</span>
+              </div>
+              <div
                 onClick={() => galleryInputRef.current?.click()}
-                className="gap-2"
+                className="flex flex-col items-center justify-center w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:text-primary hover:border-primary hover:bg-primary/5 cursor-pointer transition-colors"
               >
-                <ImagePlus className="w-4 h-4" />
-                从相册选择
-              </Button>
+                <ImagePlus className="w-6 h-6 mb-2" />
+                <span className="text-xs">相册</span>
+              </div>
             </div>
           )}
         </div>

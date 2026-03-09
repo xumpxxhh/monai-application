@@ -15,24 +15,15 @@ export function HomePage() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="space-y-4 rounded-lg border border-destructive/50 bg-destructive/5 p-4 text-destructive">
-        <p>{error}</p>
-        <button
-          type="button"
-          className="text-sm underline hover:no-underline"
-          onClick={() => refetch()}
-        >
-          重试
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      <Dashboard income={summary.income} expense={summary.expense} balance={summary.balance} />
+      <Dashboard
+        income={summary.income}
+        expense={summary.expense}
+        balance={summary.balance}
+        todayExpense={summary.todayExpense}
+        monthDailyAverageExpense={summary.monthDailyAverageExpense}
+      />
       <TransactionList
         transactions={transactions.slice(0, 5)}
         categories={categories}

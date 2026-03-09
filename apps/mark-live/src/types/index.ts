@@ -54,7 +54,7 @@ export interface Transaction {
 
 export const DEFAULT_CATEGORIES: Category[] = [
   { id: '1', name: '餐饮', type: 'expense', icon: 'Utensils', color: 'bg-red-100 text-red-600' },
-  { id: '2', name: '交通', type: 'expense', icon: 'Car', color: 'bg-blue-100 text-blue-600' },
+  // { id: '2', name: '交通', type: 'expense', icon: 'Car', color: 'bg-blue-100 text-blue-600' },
   {
     id: '3',
     name: '购物',
