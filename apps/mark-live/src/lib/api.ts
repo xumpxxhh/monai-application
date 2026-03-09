@@ -46,12 +46,13 @@ export async function apiRequest<T>(
   if (contentType && contentType.includes('application/json')) {
     data = await response.json().catch(() => ({}));
   } else {
-    data = {};
+    const textData = await response.text().catch(() => '');
+    data = { message: textData || response.statusText || 'Non-JSON error response' };
   }
 
   if (!response.ok) {
     throw {
-      code: data.code || 'UNKNOWN_ERROR',
+      code: data.code || 'HTTP_ERROR',
       message: data.message || 'An unknown error occurred',
       status: response.status,
     };
@@ -78,12 +79,13 @@ export async function apiRequestFormData<T>(
   if (contentType && contentType.includes('application/json')) {
     data = await response.json().catch(() => ({}));
   } else {
-    data = {};
+    const textData = await response.text().catch(() => '');
+    data = { message: textData || response.statusText || 'Non-JSON error response' };
   }
 
   if (!response.ok) {
     throw {
-      code: data.code || 'UNKNOWN_ERROR',
+      code: data.code || 'HTTP_ERROR',
       message: data.message || 'An unknown error occurred',
       status: response.status,
     };

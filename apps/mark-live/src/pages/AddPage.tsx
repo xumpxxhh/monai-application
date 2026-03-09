@@ -24,7 +24,7 @@ export function AddPage() {
       toast.success('保存成功');
       navigate('/');
     } catch (err) {
-      toast.error('保存失败，请重试：' + transactionError + err);
+      toast.error('保存失败，请重试：' + transactionError + JSON.stringify(err, null, 2));
     } finally {
       setSubmitting(false);
     }
