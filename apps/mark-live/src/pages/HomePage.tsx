@@ -3,7 +3,8 @@ import { Dashboard } from '../components/Dashboard';
 import { TransactionList } from '../components/TransactionList';
 
 export function HomePage() {
-  const { transactions, categories, loading, deleteTransaction, getSummary } = useTransactions();
+  const { transactions, categories, loading, deleteTransaction, updateTransaction, getSummary } =
+    useTransactions();
   const summary = getSummary();
 
   if (loading) {
@@ -27,6 +28,7 @@ export function HomePage() {
         transactions={transactions.slice(0, 5)}
         categories={categories}
         onDelete={deleteTransaction}
+        onUpdate={updateTransaction}
       />
     </div>
   );

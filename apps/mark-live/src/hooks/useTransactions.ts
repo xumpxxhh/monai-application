@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import dayjs from 'dayjs';
 import { Transaction, Category, DEFAULT_CATEGORIES } from '../types/index';
-import { listBills, createBillFormData, deleteBill } from '../lib/api';
+import { listBills, createBillFormData, updateBill, deleteBill } from '../lib/api';
 import { toast } from 'ui/react';
 
 export function useTransactions() {
@@ -61,6 +61,29 @@ export function useTransactions() {
     }
   };
 
+  const updateTransaction = async (
+    id: string,
+    data: {
+      title: string;
+      amount: number;
+      category: string;
+      time: string;
+      remark?: string;
+      imageUrl?: string;
+    },
+  ) => {
+    setError(null);
+    try {
+      const updated = await updateBill(id, data);
+      setTransactions((prev) => prev.map((t) => (t.id === id ? (updated as Transaction) : t)));
+      return updated;
+    } catch (err) {
+      const msg = (err as { message?: string })?.message ?? '更新账单失败';
+      setError(msg);
+      throw err;
+    }
+  };
+
   const deleteTransaction = async (id: string) => {
     setError(null);
     try {
@@ -111,6 +134,7 @@ export function useTransactions() {
     error,
     refetch: fetchBills,
     addTransaction,
+    updateTransaction,
     deleteTransaction,
     getSummary,
   };

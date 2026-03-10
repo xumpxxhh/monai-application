@@ -1,40 +1,64 @@
 import { useState, useRef } from 'react';
 import dayjs from 'dayjs';
-import { Category, TransactionType } from '../types/index';
+import { Category, TransactionType, Transaction } from '../types/index';
 import { Button, Input, Label } from 'ui/react';
 import { Calendar, Camera, Check, DollarSign, ImagePlus, X } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { ImageViewer } from './ImageViewer';
 
+export type AddTransactionFormSubmitData = {
+  title: string;
+  amount: number;
+  category: string;
+  time: string;
+  remark?: string;
+  type: TransactionType;
+  imageFile?: File;
+};
+
+export type UpdateTransactionFormData = {
+  title: string;
+  amount: number;
+  category: string;
+  time: string;
+  remark?: string;
+  imageUrl?: string;
+};
+
 interface AddTransactionFormProps {
   categories: Category[];
-  onSubmit: (data: {
-    title: string;
-    amount: number;
-    category: string;
-    time: string;
-    remark?: string;
-    type: TransactionType;
-    imageFile?: File;
-  }) => void | Promise<void>;
+  onSubmit: (data: AddTransactionFormSubmitData) => void | Promise<void>;
   onCancel: () => void;
   submitting?: boolean;
+  /** 编辑模式：传入后表单预填且收入/支出类型不可修改 */
+  initialTransaction?: Transaction | null;
+  onUpdate?: (id: string, data: UpdateTransactionFormData) => void | Promise<void>;
 }
+
+const isEditMode = (t: Transaction | null | undefined): t is Transaction => t != null && 'id' in t;
 
 export function AddTransactionForm({
   categories,
   onSubmit,
   onCancel,
   submitting,
+  initialTransaction,
+  onUpdate,
 }: AddTransactionFormProps) {
-  const [type, setType] = useState<TransactionType>('expense');
-  const [title, setTitle] = useState('');
-  const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState('');
-  const [time, setTime] = useState(dayjs().format('YYYY-MM-DD'));
-  const [remark, setRemark] = useState('');
+  const editMode = isEditMode(initialTransaction);
+  const [type, setType] = useState<TransactionType>(initialTransaction?.type ?? 'expense');
+  const [title, setTitle] = useState(initialTransaction?.title ?? '');
+  const [amount, setAmount] = useState(
+    initialTransaction != null ? String(initialTransaction.amount) : '',
+  );
+  const [category, setCategory] = useState(initialTransaction?.category ?? '');
+  const [time, setTime] = useState(initialTransaction?.time ?? dayjs().format('YYYY-MM-DD'));
+  const [remark, setRemark] = useState(initialTransaction?.remark ?? '');
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    initialTransaction?.imageUrl ?? null,
+  );
+  const [imageUrlCleared, setImageUrlCleared] = useState(false);
   const [showViewer, setShowViewer] = useState(false);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -49,9 +73,10 @@ export function AddTransactionForm({
   };
 
   const clearImage = () => {
-    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    if (imagePreview && imagePreview.startsWith('blob:')) URL.revokeObjectURL(imagePreview);
     setImageFile(null);
     setImagePreview(null);
+    if (editMode) setImageUrlCleared(true);
     if (cameraInputRef.current) cameraInputRef.current.value = '';
     if (galleryInputRef.current) galleryInputRef.current.value = '';
   };
@@ -59,6 +84,18 @@ export function AddTransactionForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !amount || !category || !time) return;
+
+    if (editMode && initialTransaction && onUpdate) {
+      onUpdate(initialTransaction.id, {
+        title,
+        amount: parseFloat(amount),
+        category,
+        time,
+        remark: remark || undefined,
+        imageUrl: imageUrlCleared ? '' : (initialTransaction.imageUrl ?? undefined),
+      });
+      return;
+    }
 
     onSubmit({
       title,
@@ -80,30 +117,38 @@ export function AddTransactionForm({
     return Icon ? <Icon className={className} /> : <Icons.HelpCircle className={className} />;
   };
 
+  const typeSegment = (
+    <div className="flex justify-center p-1 bg-gray-100 rounded-lg min-w-0">
+      <button
+        type="button"
+        className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+          type === 'expense'
+            ? 'bg-white shadow-sm text-red-600'
+            : 'text-gray-500 hover:text-gray-900'
+        } ${editMode ? 'cursor-not-allowed opacity-90' : ''}`}
+        onClick={() => !editMode && setType('expense')}
+        disabled={editMode}
+      >
+        支出
+      </button>
+      <button
+        type="button"
+        className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+          type === 'income'
+            ? 'bg-white shadow-sm text-green-600'
+            : 'text-gray-500 hover:text-gray-900'
+        } ${editMode ? 'cursor-not-allowed opacity-90' : ''}`}
+        onClick={() => !editMode && setType('income')}
+        disabled={editMode}
+      >
+        收入
+      </button>
+    </div>
+  );
+
   return (
     <div className="space-y-6 min-w-0 max-w-full">
-      <div className="flex justify-center p-1 bg-gray-100 rounded-lg min-w-0">
-        <button
-          className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
-            type === 'expense'
-              ? 'bg-white shadow-sm text-red-600'
-              : 'text-gray-500 hover:text-gray-900'
-          }`}
-          onClick={() => setType('expense')}
-        >
-          支出
-        </button>
-        <button
-          className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
-            type === 'income'
-              ? 'bg-white shadow-sm text-green-600'
-              : 'text-gray-500 hover:text-gray-900'
-          }`}
-          onClick={() => setType('income')}
-        >
-          收入
-        </button>
-      </div>
+      {typeSegment}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
@@ -193,21 +238,25 @@ export function AddTransactionForm({
 
         <div className="space-y-2">
           <Label>消费/收入凭证 (可选)</Label>
-          <input
-            ref={cameraInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={handleImageChange}
-          />
-          <input
-            ref={galleryInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleImageChange}
-          />
+          {!editMode && (
+            <>
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handleImageChange}
+              />
+              <input
+                ref={galleryInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageChange}
+              />
+            </>
+          )}
           {imagePreview ? (
             <div className="flex justify-center w-full">
               <div className="relative inline-block">
@@ -227,6 +276,8 @@ export function AddTransactionForm({
                 </button>
               </div>
             </div>
+          ) : editMode ? (
+            <p className="text-sm text-gray-500">无凭证</p>
           ) : (
             <div className="flex justify-center gap-4 w-full">
               <div

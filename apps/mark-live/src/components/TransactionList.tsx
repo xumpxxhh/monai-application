@@ -2,20 +2,30 @@ import { useState } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import { Transaction, Category } from '../types/index';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Pencil } from 'lucide-react';
 import { Button, toast } from 'ui/react';
 import * as Icons from 'lucide-react';
 import { ImageViewer } from './ImageViewer';
 import { useConfirmDialog } from './ConfirmDialog';
+import { AddTransactionForm } from './AddTransactionForm';
+import type { UpdateTransactionFormData } from './AddTransactionForm';
 
 interface TransactionListProps {
   transactions: Transaction[];
   categories: Category[];
   onDelete: (id: string) => void | Promise<void>;
+  onUpdate?: (id: string, data: UpdateTransactionFormData) => void | Promise<unknown>;
 }
 
-export function TransactionList({ transactions, categories, onDelete }: TransactionListProps) {
+export function TransactionList({
+  transactions,
+  categories,
+  onDelete,
+  onUpdate,
+}: TransactionListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const confirm = useConfirmDialog();
 
@@ -32,6 +42,20 @@ export function TransactionList({ transactions, categories, onDelete }: Transact
       toast.error('删除失败，请重试');
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleUpdate = async (id: string, data: UpdateTransactionFormData) => {
+    if (!onUpdate) return;
+    setUpdatingId(id);
+    try {
+      await onUpdate(id, data);
+      toast.success('修改成功');
+      setEditingTransaction(null);
+    } catch {
+      toast.error('修改失败，请重试');
+    } finally {
+      setUpdatingId(null);
     }
   };
 
@@ -117,12 +141,25 @@ export function TransactionList({ transactions, categories, onDelete }: Transact
                       >
                         {transaction.type === 'income' ? '+' : '-'}¥{transaction.amount.toFixed(2)}
                       </span>
+                      {onUpdate && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-gray-400 hover:text-primary"
+                          onClick={() => setEditingTransaction(transaction)}
+                          disabled={updatingId === transaction.id}
+                          aria-label="编辑"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-gray-400 hover:text-red-500"
                         onClick={() => handleDelete(transaction.id)}
                         disabled={deletingId === transaction.id}
+                        aria-label="删除"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -135,6 +172,27 @@ export function TransactionList({ transactions, categories, onDelete }: Transact
         ))
       )}
       {previewImage && <ImageViewer src={previewImage} onClose={() => setPreviewImage(null)} />}
+
+      {editingTransaction && onUpdate && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex flex-col items-center justify-end sm:justify-center p-0 sm:p-4">
+          <div
+            className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-background rounded-t-2xl sm:rounded-2xl shadow-xl p-4 pb-safe"
+            role="dialog"
+            aria-modal="true"
+            aria-label="编辑账单"
+          >
+            <h3 className="text-lg font-semibold mb-4">编辑账单</h3>
+            <AddTransactionForm
+              categories={categories}
+              initialTransaction={editingTransaction}
+              onUpdate={(id, data) => handleUpdate(id, data)}
+              onSubmit={() => {}}
+              onCancel={() => setEditingTransaction(null)}
+              submitting={updatingId === editingTransaction.id}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

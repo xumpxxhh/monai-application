@@ -175,6 +175,21 @@ export function createBillFormData(data: {
   return apiRequestFormData<Transaction>('/bills', 'POST', formData);
 }
 
+/** 修改账单（部分字段，不包含 type） */
+export function updateBill(
+  id: string,
+  body: {
+    title?: string;
+    amount?: number;
+    category?: string;
+    time?: string;
+    remark?: string;
+    imageUrl?: string;
+  },
+): Promise<Transaction> {
+  return apiRequest<Transaction>(`/bills/${id}`, 'PATCH', body);
+}
+
 /** 删除账单（软删除） */
 export function deleteBill(id: string): Promise<void> {
   return apiRequest<void>(`/bills/${id}`, 'DELETE');
