@@ -1,8 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import dayjs from 'dayjs';
 import { Bill } from './entities/bill.entity';
 import { CreateBillDto } from './dto/create-bill.dto';
+import { UpdateBillDto } from './dto/update-bill.dto';
 import { ListBillsQueryDto } from './dto/list-bills-query.dto';
 
 @Injectable()
@@ -21,13 +23,13 @@ export class BillsService {
 
     if (startDate) {
       qb.andWhere('bill.time >= :startDate', {
-        startDate: new Date(startDate),
+        startDate: dayjs(startDate).toDate(),
       });
     }
     if (endDate) {
-      const end = new Date(endDate);
-      end.setHours(23, 59, 59, 999);
-      qb.andWhere('bill.time <= :endDate', { endDate: end });
+      qb.andWhere('bill.time <= :endDate', {
+        endDate: dayjs(endDate).endOf('day').toDate(),
+      });
     }
 
     qb.orderBy('bill.time', 'DESC').addOrderBy('bill.created_at', 'DESC');
@@ -55,13 +57,13 @@ export class BillsService {
 
     if (startDate) {
       qb.andWhere('bill.time >= :startDate', {
-        startDate: new Date(startDate),
+        startDate: dayjs(startDate).toDate(),
       });
     }
     if (endDate) {
-      const end = new Date(endDate);
-      end.setHours(23, 59, 59, 999);
-      qb.andWhere('bill.time <= :endDate', { endDate: end });
+      qb.andWhere('bill.time <= :endDate', {
+        endDate: dayjs(endDate).endOf('day').toDate(),
+      });
     }
 
     qb.orderBy('bill.time', 'DESC').addOrderBy('bill.created_at', 'DESC');
@@ -82,8 +84,9 @@ export class BillsService {
   async create(uid: number, dto: CreateBillDto): Promise<Record<string, unknown>> {
     const timeStr = dto.time ?? dto.date;
     if (!timeStr) throw new Error('Missing time or date');
-    const timeDate = new Date(timeStr);
-    if (isNaN(timeDate.getTime())) throw new Error('Invalid date');
+    const timeDayjs = dayjs(timeStr);
+    if (!timeDayjs.isValid()) throw new Error('Invalid date');
+    const timeDate = timeDayjs.toDate();
     const category = dto.category ?? dto.categoryId ?? '';
     const remark = dto.remark ?? dto.note ?? null;
     const bill = this.billRepo.create({
@@ -102,6 +105,31 @@ export class BillsService {
     return toTransactionDto(saved);
   }
 
+  async update(uid: number, id: string, dto: UpdateBillDto): Promise<Record<string, unknown>> {
+    const bill = await this.billRepo.findOne({
+      where: { id: String(id), uid, isDeleted: 0 },
+    });
+    if (!bill) {
+      throw new NotFoundException('Bill not found');
+    }
+    if (dto.type !== undefined) bill.type = dto.type;
+    if (dto.title !== undefined) bill.title = dto.title;
+    if (dto.amount !== undefined) bill.amount = dto.amount;
+    const category = dto.category ?? dto.categoryId;
+    if (category !== undefined) bill.category = category;
+    if (dto.tags !== undefined) bill.tags = dto.tags ?? null;
+    if (dto.imageUrl !== undefined) bill.imageUrl = dto.imageUrl ?? null;
+    const timeStr = dto.time ?? dto.date;
+    if (timeStr !== undefined) {
+      const timeDayjs = dayjs(timeStr);
+      if (timeDayjs.isValid()) bill.time = timeDayjs.toDate();
+    }
+    const remark = dto.remark ?? dto.note;
+    if (remark !== undefined) bill.remark = remark ?? null;
+    const saved = await this.billRepo.save(bill);
+    return toTransactionDto(saved);
+  }
+
   async remove(uid: number, id: string): Promise<void> {
     const bill = await this.billRepo.findOne({
       where: { id: String(id), uid, isDeleted: 0 },
@@ -115,15 +143,19 @@ export class BillsService {
 }
 
 function toTransactionDto(bill: Bill): Record<string, unknown> {
+  const timeStr =
+    bill.time instanceof Date ? dayjs(bill.time).format('YYYY-MM-DD') : String(bill.time);
+  const createdAt =
+    bill.createdAt instanceof Date ? dayjs(bill.createdAt).valueOf() : Number(bill.createdAt);
   return {
     id: String(bill.id),
     title: bill.title,
     amount: Number(bill.amount),
     category: bill.category,
-    time: bill.time instanceof Date ? bill.time.toISOString().split('T')[0] : String(bill.time),
+    time: timeStr,
     remark: bill.remark ?? undefined,
     type: bill.type,
     imageUrl: bill.imageUrl ?? undefined,
-    createdAt: bill.createdAt instanceof Date ? bill.createdAt.getTime() : Number(bill.createdAt),
+    createdAt,
   };
 }

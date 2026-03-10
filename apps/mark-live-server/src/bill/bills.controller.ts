@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Delete,
   Body,
   Param,
@@ -15,8 +16,10 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
+import dayjs from 'dayjs';
 import { BillsService } from './bills.service';
 import { CreateBillDto } from './dto/create-bill.dto';
+import { UpdateBillDto } from './dto/update-bill.dto';
 import { ListBillsQueryDto } from './dto/list-bills-query.dto';
 import { User, RequestUser } from '../common/decorators/user.decorator';
 import { AuthTokenGuard } from '../common/guards/auth-token.guard';
@@ -60,10 +63,7 @@ export class BillsController {
       const ext =
         file.originalname?.split('.').pop()?.toLowerCase() ||
         (file.mimetype?.startsWith('image/') ? file.mimetype.replace('image/', '') : 'jpg');
-      const createAt = new Date()
-        .toISOString()
-        .replace(/[-:T.Z]/g, '')
-        .slice(0, 14);
+      const createAt = dayjs().format('YYYYMMDDHHmmss');
       const safeTitle =
         (body.title || 'image').replace(/[^a-zA-Z0-9\u4e00-\u9fa5_-]/g, '_') || 'image';
       const defaultName = `${safeTitle}_${createAt}.${ext}`;
@@ -72,6 +72,11 @@ export class BillsController {
       imageUrl = result.route;
     }
     return this.billsService.create(user.id, { ...body, imageUrl: imageUrl ?? undefined });
+  }
+
+  @Patch(':id')
+  async update(@User() user: RequestUser, @Param('id') id: string, @Body() body: UpdateBillDto) {
+    return this.billsService.update(user.id, id, body);
   }
 
   @Delete(':id')

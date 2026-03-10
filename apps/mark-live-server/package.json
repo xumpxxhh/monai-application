@@ -18,6 +18,7 @@
     "db:init": "node scripts/run-init-db.mjs"
   },
   "dependencies": {
+    "dayjs": "^1.11.19",
     "@nestjs/common": "^9.4.3",
     "@nestjs/config": "^2.3.1",
     "@nestjs/core": "^9.4.3",
