@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import type { User, UserInfo } from './types';
 import { validateAuth, requestLogin, exchangeTokenByCode, getUserInfo } from './lib/api';
 import { AuthProvider } from './contexts/AuthContext';
+import { ConfirmDialogProvider } from './components/ConfirmDialog';
 import { Layout } from './components/Layout';
 import { HomePage } from './pages/HomePage';
 import { HistoryPage } from './pages/HistoryPage';
@@ -52,17 +53,19 @@ export default function App() {
 
   return (
     <AuthProvider user={user} userInfo={userInfo}>
-      <BrowserRouter basename={import.meta.env.VITE_APP_MARK_LIVE_BASE_PATH || ''}>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/history" element={<HistoryPage />} />
-            <Route path="/add" element={<AddPage />} />
-            <Route path="/statistics" element={<StatisticsPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-          </Routes>
-        </Layout>
-      </BrowserRouter>
+      <ConfirmDialogProvider>
+        <BrowserRouter basename={import.meta.env.VITE_APP_MARK_LIVE_BASE_PATH || ''}>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/history" element={<HistoryPage />} />
+              <Route path="/add" element={<AddPage />} />
+              <Route path="/statistics" element={<StatisticsPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+            </Routes>
+          </Layout>
+        </BrowserRouter>
+      </ConfirmDialogProvider>
     </AuthProvider>
   );
 }

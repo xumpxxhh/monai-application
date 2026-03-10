@@ -1,9 +1,12 @@
 import { useState } from 'react';
+import dayjs from 'dayjs';
+import 'dayjs/locale/zh-cn';
 import { Transaction, Category } from '../types/index';
 import { Trash2 } from 'lucide-react';
 import { Button, toast } from 'ui/react';
 import * as Icons from 'lucide-react';
 import { ImageViewer } from './ImageViewer';
+import { useConfirmDialog } from './ConfirmDialog';
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -14,8 +17,14 @@ interface TransactionListProps {
 export function TransactionList({ transactions, categories, onDelete }: TransactionListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const confirm = useConfirmDialog();
 
   const handleDelete = async (id: string) => {
+    const ok = await confirm({
+      title: '删除确认',
+      message: '确定要删除这条账单记录吗？此操作无法恢复。',
+    });
+    if (!ok) return;
     setDeletingId(id);
     try {
       await onDelete(id);
@@ -25,14 +34,11 @@ export function TransactionList({ transactions, categories, onDelete }: Transact
       setDeletingId(null);
     }
   };
+
   // Group transactions by time (与后端 bill.time 一致)
   const groupedTransactions = transactions.reduce(
     (groups, transaction) => {
-      const timeLabel = new Date(transaction.time).toLocaleDateString('zh-CN', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
+      const timeLabel = dayjs(transaction.time).locale('zh-cn').format('YYYY年M月D日');
       if (!groups[timeLabel]) {
         groups[timeLabel] = [];
       }

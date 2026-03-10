@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import dayjs from 'dayjs';
 import { Transaction, Category, DEFAULT_CATEGORIES } from '../types/index';
 import { listBills, createBillFormData, deleteBill } from '../lib/api';
 import { toast } from 'ui/react';
@@ -14,7 +15,14 @@ export function useTransactions() {
     setLoading(true);
     setError(null);
     try {
-      const res = await listBills({ page: 1, pageSize: 20 });
+      const startDate = dayjs().startOf('month').format('YYYY-MM-DD');
+      const endDate = dayjs().endOf('month').format('YYYY-MM-DD');
+      const res = await listBills({
+        page: 1,
+        pageSize: 99,
+        startDate,
+        endDate,
+      });
       setTransactions(res.items);
     } catch (err) {
       const msg = (err as { message?: string })?.message ?? '获取账单失败';
@@ -73,13 +81,8 @@ export function useTransactions() {
       .filter((t) => t.type === 'expense')
       .reduce((acc, curr) => acc + curr.amount, 0);
 
-    const now = new Date();
-    const todayStr = now
-      .toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })
-      .replace(/\//g, '-');
-    const currentYearStr = now.getFullYear().toString();
-    const currentMonthStr = (now.getMonth() + 1).toString().padStart(2, '0');
-    const currentYearMonthPrefix = `${currentYearStr}-${currentMonthStr}`;
+    const todayStr = dayjs().format('YYYY-MM-DD');
+    const currentYearMonthPrefix = dayjs().format('YYYY-MM');
 
     const todayExpense = transactions
       .filter((t) => t.type === 'expense' && t.time.startsWith(todayStr))
@@ -89,7 +92,7 @@ export function useTransactions() {
       .filter((t) => t.type === 'expense' && t.time.startsWith(currentYearMonthPrefix))
       .reduce((acc, curr) => acc + curr.amount, 0);
 
-    const currentDay = now.getDate();
+    const currentDay = dayjs().date();
     const monthDailyAverageExpense = currentDay > 0 ? monthExpense / currentDay : 0;
 
     return {

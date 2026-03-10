@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import dayjs from 'dayjs';
 import { Category, TransactionType } from '../types/index';
 import { Button, Input, Label } from 'ui/react';
 import { Calendar, Camera, Check, DollarSign, ImagePlus, X } from 'lucide-react';
@@ -30,7 +31,7 @@ export function AddTransactionForm({
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
-  const [time, setTime] = useState(new Date().toISOString().split('T')[0]);
+  const [time, setTime] = useState(dayjs().format('YYYY-MM-DD'));
   const [remark, setRemark] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);

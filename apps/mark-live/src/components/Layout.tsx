@@ -1,4 +1,6 @@
 import { ReactNode } from 'react';
+import dayjs from 'dayjs';
+import 'dayjs/locale/zh-cn';
 import { Home, List, PlusCircle, User, PieChart } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
@@ -13,11 +15,7 @@ export function Layout({ children }: LayoutProps) {
         <div className="w-full max-w-md mx-auto px-4 py-3 flex justify-between items-center min-w-0">
           <h1 className="text-xl font-bold text-primary truncate min-w-0 mr-2">生活记账</h1>
           <div className="text-sm text-gray-500 flex-shrink-0">
-            {new Date().toLocaleDateString('zh-CN', {
-              month: 'long',
-              day: 'numeric',
-              weekday: 'short',
-            })}
+            {dayjs().locale('zh-cn').format('M月D日 ddd')}
           </div>
         </div>
       </header>
