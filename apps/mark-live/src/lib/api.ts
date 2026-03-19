@@ -5,6 +5,7 @@ import {
   logout as logoutFromConfig,
   exchangeTokenByCode as exchangeTokenByCodeFromConfig,
   getUserInfo as getUserInfoFromConfig,
+  refreshToken as refreshTokenFromConfig,
 } from 'config';
 
 export const API_BASE_URL =
@@ -25,35 +26,39 @@ export type ApiError = {
   message: string;
 };
 
+async function parseResponse(response: Response): Promise<unknown> {
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    return response.json().catch(() => ({}));
+  }
+  const text = await response.text().catch(() => '');
+  return { message: text || response.statusText || 'Non-JSON error response' };
+}
+
 export async function apiRequest<T>(
   endpoint: string,
   method: string = 'GET',
   body?: unknown,
+  _retry = false,
 ): Promise<T> {
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-  };
-
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     method,
-    headers,
+    headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  const contentType = response.headers.get('content-type');
-  let data;
-  if (contentType && contentType.includes('application/json')) {
-    data = await response.json().catch(() => ({}));
-  } else {
-    const textData = await response.text().catch(() => '');
-    data = { message: textData || response.statusText || 'Non-JSON error response' };
+  if (response.status === 401 && !_retry) {
+    await refreshTokenFromConfig();
+    return apiRequest<T>(endpoint, method, body, true);
   }
+
+  const data = await parseResponse(response);
 
   if (!response.ok) {
     throw {
-      code: data.code || 'HTTP_ERROR',
-      message: data.message || 'An unknown error occurred',
+      code: (data as Record<string, string>).code || 'HTTP_ERROR',
+      message: (data as Record<string, string>).message || 'An unknown error occurred',
       status: response.status,
     };
   }
@@ -66,27 +71,25 @@ export async function apiRequestFormData<T>(
   endpoint: string,
   method: string = 'POST',
   formData: FormData,
+  _retry = false,
 ): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     method,
     credentials: 'include',
     body: formData,
-    // 不设置 Content-Type，浏览器会自动设置 multipart/form-data; boundary=...
   });
 
-  const contentType = response.headers.get('content-type');
-  let data;
-  if (contentType && contentType.includes('application/json')) {
-    data = await response.json().catch(() => ({}));
-  } else {
-    const textData = await response.text().catch(() => '');
-    data = { message: textData || response.statusText || 'Non-JSON error response' };
+  if (response.status === 401 && !_retry) {
+    await refreshTokenFromConfig();
+    return apiRequestFormData<T>(endpoint, method, formData, true);
   }
+
+  const data = await parseResponse(response);
 
   if (!response.ok) {
     throw {
-      code: data.code || 'HTTP_ERROR',
-      message: data.message || 'An unknown error occurred',
+      code: (data as Record<string, string>).code || 'HTTP_ERROR',
+      message: (data as Record<string, string>).message || 'An unknown error occurred',
       status: response.status,
     };
   }
@@ -110,6 +113,9 @@ export const exchangeTokenByCode = (): Promise<{ token?: string; [k: string]: un
 
 /** 获取用户信息（复用 config 公共方法） */
 export const getUserInfo = () => getUserInfoFromConfig();
+
+/** 手动刷新 Access Token（复用 config 公共方法） */
+export const refreshToken = () => refreshTokenFromConfig();
 
 // ========== 账单接口 ==========
 
