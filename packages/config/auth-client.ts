@@ -125,3 +125,46 @@ export async function getUserInfo(): Promise<AuthUser> {
   }
   return res.json() as Promise<IUserInfo>;
 }
+
+export type RefreshTokenOptions = {
+  authApiBaseUrl?: string;
+};
+
+/**
+ * 刷新 Access Token：POST /refresh，浏览器自动携带 refresh_token Cookie。
+ * 成功后服务端通过 Set-Cookie 轮换 auth_token 和 refresh_token（204 无响应体）。
+ * refresh_token 已过期或被吊销时抛错，调用方应跳转登录页。
+ */
+export async function refreshToken(options: RefreshTokenOptions = {}): Promise<void> {
+  const baseUrl = options.authApiBaseUrl ?? AUTH_API_BASE_URL;
+  const res = await fetch(`${baseUrl}/refresh`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw {
+      code: data?.code ?? 'UNAUTHORIZED',
+      message: data?.message,
+      status: res.status,
+    };
+  }
+}
+
+/**
+ * 带自动刷新的 fetch 封装：
+ * 请求返回 401 时自动调用 refreshToken() 重试一次；
+ * 刷新失败则将原始 401 错误继续抛出，由调用方决定是否跳转登录。
+ */
+export async function fetchWithRefresh(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+  options: RefreshTokenOptions = {},
+): Promise<Response> {
+  const reqInit: RequestInit = { credentials: 'include', ...init };
+  const res = await fetch(input, reqInit);
+  if (res.status !== 401) return res;
+
+  await refreshToken(options);
+  return fetch(input, reqInit);
+}

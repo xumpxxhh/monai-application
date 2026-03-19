@@ -8,9 +8,13 @@ export {
   logout,
   exchangeTokenByCode,
   getUserInfo,
+  refreshToken,
+  fetchWithRefresh,
   type AuthUser,
   type ValidateAuthOptions,
   type RequestLoginOptions,
   type LogoutOptions,
   type TokenByCodeOptions,
+  type RefreshTokenOptions,
+  type IUserInfo,
 } from './auth-client';
