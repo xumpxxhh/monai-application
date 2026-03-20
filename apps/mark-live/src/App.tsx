@@ -1,7 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import type { User, UserInfo } from './types';
-import { validateAuth, requestLogin, exchangeTokenByCode, getUserInfo } from './lib/api';
+import {
+  validateAuth,
+  requestLogin,
+  exchangeTokenByCode,
+  getUserInfo,
+  refreshToken,
+} from './lib/api';
 import { AuthProvider } from './contexts/AuthContext';
 import { ConfirmDialogProvider } from './components/ConfirmDialog';
 import { Layout } from './components/Layout';
@@ -15,27 +21,39 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const initRef = useRef(false);
 
   useEffect(() => {
+    if (initRef.current) return;
+    initRef.current = true;
+
     (async () => {
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get('code');
-      if (code) {
-        await exchangeTokenByCode();
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+        if (code) {
+          await exchangeTokenByCode();
+        }
+
+        let authUser;
+        try {
+          authUser = await validateAuth();
+        } catch {
+          // access token 过期，尝试静默刷新后重新校验
+          await refreshToken();
+          authUser = await validateAuth();
+        }
+
+        setUser(authUser);
+        getUserInfo()
+          .then((info) => setUserInfo(info as UserInfo))
+          .catch(() => setUserInfo(null));
+      } catch {
+        // refresh token 也已失效，跳转登录
+        requestLogin(window.location.href);
+      } finally {
+        setLoading(false);
       }
-      validateAuth()
-        .then((response) => {
-          setUser(response);
-          return getUserInfo()
-            .then((info) => setUserInfo(info as UserInfo))
-            .catch(() => setUserInfo(null));
-        })
-        .catch(() => {
-          requestLogin(window.location.href);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
     })();
   }, []);
 

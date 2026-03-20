@@ -6,6 +6,12 @@
 export const AUTH_API_BASE_URL =
   (import.meta.env?.VITE_AUTH_API_BASE_URL as string) || 'http://localhost:8888/api/v1/auth';
 
+export const AUTH_API_REDIRECT_URI_SESSION_NAME =
+  (import.meta.env?.VITE_AUTH_API_REDIRECT_URI_SESSION_NAME as string) || 'auth_redirect_uri';
+
+export const AUTH_API_CODE_VERIFIER_SESSION_NAME =
+  (import.meta.env?.VITE_AUTH_API_CODE_VERIFIER_SESSION_NAME as string) || 'auth_code_verifier';
+
 export interface AuthUser {
   id: number;
   role: string;
@@ -41,13 +47,17 @@ export async function validateAuth(options: ValidateAuthOptions = {}): Promise<A
 }
 
 /** 请求 request-login，从响应 JSON 的 login_url 跳转到登录页 */
-export function requestLogin(
+export async function requestLogin(
   redirectUri: string,
   options: RequestLoginOptions = {},
 ): Promise<void> {
+  sessionStorage.setItem(AUTH_API_REDIRECT_URI_SESSION_NAME, redirectUri);
   const baseUrl = options.authApiBaseUrl ?? AUTH_API_BASE_URL;
   const clientId = options.clientId ?? '';
+  const { verifier, challenge } = await generatePKCE();
+  sessionStorage.setItem(AUTH_API_CODE_VERIFIER_SESSION_NAME, verifier);
   const query = new URLSearchParams({ redirect_uri: redirectUri });
+  query.set('code_challenge', challenge);
   if (clientId) query.set('client_id', clientId);
   const url = `${baseUrl}/request-login?${query.toString()}`;
   return fetch(url, { method: 'GET', credentials: 'include', redirect: 'manual' })
@@ -82,7 +92,9 @@ export async function exchangeTokenByCode(
   const baseUrl = options?.authApiBaseUrl ?? AUTH_API_BASE_URL;
   const params = new URLSearchParams(window.location.search);
   const client_id = options.clientId;
+  const redirect_uri = sessionStorage.getItem(AUTH_API_REDIRECT_URI_SESSION_NAME);
   const code = params.get('code');
+  const code_verifier = sessionStorage.getItem(AUTH_API_CODE_VERIFIER_SESSION_NAME);
   console.log('client_id', client_id);
   console.log('code', code);
   if (!client_id || !code) {
@@ -92,7 +104,7 @@ export async function exchangeTokenByCode(
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ client_id, code }),
+    body: JSON.stringify({ client_id, code, redirect_uri, code_verifier }),
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
@@ -167,4 +179,29 @@ export async function fetchWithRefresh(
 
   await refreshToken(options);
   return fetch(input, reqInit);
+}
+
+export async function generatePKCE(): Promise<{ verifier: string; challenge: string }> {
+  const verifier = base64url(crypto.getRandomValues(new Uint8Array(48)));
+  const challenge = base64url(
+    await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)),
+  );
+  return { verifier, challenge };
+}
+function base64url(buffer: ArrayBuffer | Uint8Array): string {
+  // 1. 将 ArrayBuffer 或 Uint8Array 转为二进制字符串
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+
+  // 2. 转换为标准 Base64
+  const base64 = btoa(binary);
+
+  // 3. 转换为 Base64URL 格式
+  return base64
+    .replace(/\+/g, '-') // '+' -> '-'
+    .replace(/\//g, '_') // '/' -> '_'
+    .replace(/=+$/, ''); // 去掉末尾的 '='
 }

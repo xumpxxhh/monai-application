@@ -109,7 +109,9 @@ export const logout = (): Promise<void> => logoutFromConfig();
 
 /** 用 code 置换 token（复用 config 公共方法） */
 export const exchangeTokenByCode = (): Promise<{ token?: string; [k: string]: unknown }> =>
-  exchangeTokenByCodeFromConfig({ clientId: APP_NAME });
+  exchangeTokenByCodeFromConfig({
+    clientId: APP_NAME,
+  });
 
 /** 获取用户信息（复用 config 公共方法） */
 export const getUserInfo = () => getUserInfoFromConfig();
