@@ -81,6 +81,74 @@ export class BillsService {
     };
   }
 
+  async stats(uid: number) {
+    const now = dayjs();
+    const todayStart = now.startOf('day');
+    const todayEnd = now.endOf('day');
+    const weekStart = now.startOf('week');
+    const monthStart = now.startOf('month');
+    const monthEnd = now.endOf('month');
+    const yearStart = now.startOf('year');
+
+    const raw = await this.billRepo
+      .createQueryBuilder('bill')
+      .select(
+        "SUM(CASE WHEN bill.type = 'income' AND bill.time >= :monthStart AND bill.time <= :monthEnd THEN bill.amount ELSE 0 END)",
+        'monthIncome',
+      )
+      .addSelect(
+        "SUM(CASE WHEN bill.type = 'expense' AND bill.time >= :monthStart AND bill.time <= :monthEnd THEN bill.amount ELSE 0 END)",
+        'monthExpense',
+      )
+      .addSelect(
+        "SUM(CASE WHEN bill.type = 'expense' AND bill.time >= :todayStart AND bill.time <= :todayEnd THEN bill.amount ELSE 0 END)",
+        'todayExpense',
+      )
+      .addSelect(
+        "SUM(CASE WHEN bill.type = 'expense' AND bill.time >= :weekStart AND bill.time <= :todayEnd THEN bill.amount ELSE 0 END)",
+        'weekExpense',
+      )
+      .addSelect(
+        "SUM(CASE WHEN bill.type = 'expense' AND bill.time >= :yearStart AND bill.time <= :todayEnd THEN bill.amount ELSE 0 END)",
+        'yearExpense',
+      )
+      .where('bill.uid = :uid', { uid })
+      .andWhere('bill.is_deleted = 0')
+      .setParameters({
+        monthStart: monthStart.toDate(),
+        monthEnd: monthEnd.toDate(),
+        todayStart: todayStart.toDate(),
+        todayEnd: todayEnd.toDate(),
+        weekStart: weekStart.toDate(),
+        yearStart: yearStart.toDate(),
+      })
+      .getRawOne<Record<string, string | number | null>>();
+
+    const monthIncome = toNumber(raw?.monthIncome);
+    const monthExpense = toNumber(raw?.monthExpense);
+    const todayExpense = toNumber(raw?.todayExpense);
+    const weekExpense = toNumber(raw?.weekExpense);
+    const yearExpense = toNumber(raw?.yearExpense);
+
+    const weekDays = now.diff(weekStart, 'day') + 1;
+    const monthDays = now.date();
+    const yearDays = now.diff(yearStart, 'day') + 1;
+
+    const weekDailyAverageExpense = weekDays > 0 ? weekExpense / weekDays : 0;
+    const monthDailyAverageExpense = monthDays > 0 ? monthExpense / monthDays : 0;
+    const yearDailyAverageExpense = yearDays > 0 ? yearExpense / yearDays : 0;
+
+    return {
+      totalBalance: roundMoney(monthIncome - monthExpense),
+      totalIncome: roundMoney(monthIncome),
+      totalExpense: roundMoney(monthExpense),
+      todayExpense: roundMoney(todayExpense),
+      weekDailyAverageExpense: roundMoney(weekDailyAverageExpense),
+      monthDailyAverageExpense: roundMoney(monthDailyAverageExpense),
+      yearDailyAverageExpense: roundMoney(yearDailyAverageExpense),
+    };
+  }
+
   async create(uid: number, dto: CreateBillDto): Promise<Record<string, unknown>> {
     const timeStr = dto.time ?? dto.date;
     if (!timeStr) throw new Error('Missing time or date');
@@ -158,4 +226,14 @@ function toTransactionDto(bill: Bill): Record<string, unknown> {
     imageUrl: bill.imageUrl ?? undefined,
     createdAt,
   };
+}
+
+function toNumber(value: string | number | null | undefined): number {
+  if (value === null || value === undefined) return 0;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function roundMoney(value: number): number {
+  return Number(value.toFixed(2));
 }

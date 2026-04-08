@@ -45,6 +45,11 @@ export class BillsController {
     return this.billsService.listDeleted(user.id, query);
   }
 
+  @Get('stats')
+  async stats(@User() user: RequestUser) {
+    return this.billsService.stats(user.id);
+  }
+
   @Post()
   @UseInterceptors(FileInterceptor('file'))
   async create(
