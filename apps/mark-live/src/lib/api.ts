@@ -135,6 +135,16 @@ export type ListBillsResponse = {
   pageSize: number;
 };
 
+export type BillsStatsResponse = {
+  totalBalance: number;
+  totalIncome: number;
+  totalExpense: number;
+  todayExpense: number;
+  weekDailyAverageExpense: number;
+  monthDailyAverageExpense: number;
+  yearDailyAverageExpense: number;
+};
+
 /** 获取账单列表 */
 export function listBills(params?: ListBillsParams): Promise<ListBillsResponse> {
   const search = new URLSearchParams();
@@ -144,6 +154,11 @@ export function listBills(params?: ListBillsParams): Promise<ListBillsResponse> 
   if (params?.endDate) search.set('endDate', params.endDate);
   const qs = search.toString();
   return apiRequest<ListBillsResponse>(`/bills${qs ? `?${qs}` : ''}`);
+}
+
+/** 获取统计信息 */
+export function getBillsStats(): Promise<BillsStatsResponse> {
+  return apiRequest<BillsStatsResponse>('/bills/stats');
 }
 
 /** 新增账单（JSON） */

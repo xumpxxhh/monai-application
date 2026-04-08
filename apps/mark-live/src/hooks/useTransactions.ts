@@ -1,11 +1,29 @@
 import { useState, useEffect, useCallback } from 'react';
 import dayjs from 'dayjs';
 import { Transaction, Category, DEFAULT_CATEGORIES } from '../types/index';
-import { listBills, createBillFormData, updateBill, deleteBill } from '../lib/api';
+import {
+  listBills,
+  createBillFormData,
+  updateBill,
+  deleteBill,
+  getBillsStats,
+  BillsStatsResponse,
+} from '../lib/api';
 import { toast } from 'ui/react';
+
+const DEFAULT_STATS: BillsStatsResponse = {
+  totalBalance: 0,
+  totalIncome: 0,
+  totalExpense: 0,
+  todayExpense: 0,
+  weekDailyAverageExpense: 0,
+  monthDailyAverageExpense: 0,
+  yearDailyAverageExpense: 0,
+};
 
 export function useTransactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [stats, setStats] = useState<BillsStatsResponse>(DEFAULT_STATS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,9 +52,22 @@ export function useTransactions() {
     }
   }, []);
 
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await getBillsStats();
+      setStats(res);
+    } catch {
+      setStats(DEFAULT_STATS);
+    }
+  }, []);
+
   useEffect(() => {
-    fetchBills();
-  }, [fetchBills]);
+    void Promise.all([fetchBills(), fetchStats()]);
+  }, [fetchBills, fetchStats]);
+
+  const refetch = useCallback(async () => {
+    await Promise.all([fetchBills(), fetchStats()]);
+  }, [fetchBills, fetchStats]);
 
   const addTransaction = async (
     transaction: Omit<Transaction, 'id' | 'createdAt'> & { imageFile?: File },
@@ -53,6 +84,7 @@ export function useTransactions() {
         imageFile: transaction.imageFile,
       });
       setTransactions((prev) => [created as Transaction, ...prev]);
+      await fetchStats();
       return created;
     } catch (err) {
       const msg = (err as { message?: string })?.message ?? '新增账单失败';
@@ -76,6 +108,7 @@ export function useTransactions() {
     try {
       const updated = await updateBill(id, data);
       setTransactions((prev) => prev.map((t) => (t.id === id ? (updated as Transaction) : t)));
+      await fetchStats();
       return updated;
     } catch (err) {
       const msg = (err as { message?: string })?.message ?? '更新账单失败';
@@ -89,6 +122,7 @@ export function useTransactions() {
     try {
       await deleteBill(id);
       setTransactions((prev) => prev.filter((t) => t.id !== id));
+      await fetchStats();
     } catch (err) {
       const msg = (err as { message?: string })?.message ?? '删除账单失败';
       setError(msg);
@@ -97,33 +131,14 @@ export function useTransactions() {
   };
 
   const getSummary = () => {
-    const income = transactions
-      .filter((t) => t.type === 'income')
-      .reduce((acc, curr) => acc + curr.amount, 0);
-    const expense = transactions
-      .filter((t) => t.type === 'expense')
-      .reduce((acc, curr) => acc + curr.amount, 0);
-
-    const todayStr = dayjs().format('YYYY-MM-DD');
-    const currentYearMonthPrefix = dayjs().format('YYYY-MM');
-
-    const todayExpense = transactions
-      .filter((t) => t.type === 'expense' && t.time.startsWith(todayStr))
-      .reduce((acc, curr) => acc + curr.amount, 0);
-
-    const monthExpense = transactions
-      .filter((t) => t.type === 'expense' && t.time.startsWith(currentYearMonthPrefix))
-      .reduce((acc, curr) => acc + curr.amount, 0);
-
-    const currentDay = dayjs().date();
-    const monthDailyAverageExpense = currentDay > 0 ? monthExpense / currentDay : 0;
-
     return {
-      income,
-      expense,
-      balance: income - expense,
-      todayExpense,
-      monthDailyAverageExpense,
+      income: stats.totalIncome,
+      expense: stats.totalExpense,
+      balance: stats.totalBalance,
+      todayExpense: stats.todayExpense,
+      weekDailyAverageExpense: stats.weekDailyAverageExpense,
+      monthDailyAverageExpense: stats.monthDailyAverageExpense,
+      yearDailyAverageExpense: stats.yearDailyAverageExpense,
     };
   };
 
@@ -132,7 +147,7 @@ export function useTransactions() {
     categories,
     loading,
     error,
-    refetch: fetchBills,
+    refetch,
     addTransaction,
     updateTransaction,
     deleteTransaction,

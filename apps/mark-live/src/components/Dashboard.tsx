@@ -6,7 +6,9 @@ interface DashboardProps {
   expense: number;
   balance: number;
   todayExpense: number;
+  weekDailyAverageExpense: number;
   monthDailyAverageExpense: number;
+  yearDailyAverageExpense: number;
 }
 
 export function Dashboard({
@@ -14,7 +16,9 @@ export function Dashboard({
   expense,
   balance,
   todayExpense,
+  weekDailyAverageExpense,
   monthDailyAverageExpense,
+  yearDailyAverageExpense,
 }: DashboardProps) {
   return (
     <div className="space-y-4">
@@ -53,26 +57,59 @@ export function Dashboard({
             <div className="text-2xl font-bold text-red-600">¥{expense.toFixed(2)}</div>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="grid grid-cols-4 gap-2">
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="p-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <ArrowUpCircle className="w-4 h-4 text-orange-500" />
               今日消费
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold text-orange-600">¥{todayExpense.toFixed(2)}</div>
+          <CardContent className="p-2 pt-0">
+            <div className="text-xl font-bold text-orange-600 text-center">
+              ¥{todayExpense.toFixed(2)}
+            </div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="p-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <ArrowUpCircle className="w-4 h-4 text-purple-500" />
-              本月日均消费
+              <ArrowUpCircle className="w-4 h-4 text-blue-500" />
+              周日消费
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold text-purple-600">¥{monthDailyAverageExpense.toFixed(2)}</div>
+          <CardContent className="p-2 pt-0">
+            <div className="text-xl font-bold text-blue-600 text-center">
+              ¥{weekDailyAverageExpense.toFixed(2)}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="p-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <ArrowUpCircle className="w-4 h-4 text-purple-500" />
+              月日消费
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-2 pt-0">
+            <div className="text-xl font-bold text-purple-600 text-center">
+              ¥{monthDailyAverageExpense.toFixed(2)}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="p-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <ArrowUpCircle className="w-4 h-4 text-cyan-500" />
+              年日消费
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-2 pt-0">
+            <div className="text-xl font-bold text-cyan-600 text-center">
+              ¥{yearDailyAverageExpense.toFixed(2)}
+            </div>
           </CardContent>
         </Card>
       </div>

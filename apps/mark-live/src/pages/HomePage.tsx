@@ -22,7 +22,9 @@ export function HomePage() {
         expense={summary.expense}
         balance={summary.balance}
         todayExpense={summary.todayExpense}
+        weekDailyAverageExpense={summary.weekDailyAverageExpense}
         monthDailyAverageExpense={summary.monthDailyAverageExpense}
+        yearDailyAverageExpense={summary.yearDailyAverageExpense}
       />
       <TransactionList
         transactions={transactions.slice(0, 5)}
