@@ -21,7 +21,16 @@ const DEFAULT_STATS: BillsStatsResponse = {
   yearDailyAverageExpense: 0,
 };
 
-export function useTransactions() {
+type UseTransactionsOptions = {
+  startDate?: string;
+  endDate?: string;
+  page?:number;
+  pageSize?: number;
+  withStats?: boolean;
+};
+
+export function useTransactions(options: UseTransactionsOptions = {}) {
+  const { startDate, endDate, page, pageSize, withStats = true } = options;
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [stats, setStats] = useState<BillsStatsResponse>(DEFAULT_STATS);
   const [loading, setLoading] = useState(true);
@@ -33,13 +42,11 @@ export function useTransactions() {
     setLoading(true);
     setError(null);
     try {
-      const startDate = dayjs().startOf('month').format('YYYY-MM-DD');
-      const endDate = dayjs().endOf('month').format('YYYY-MM-DD');
       const res = await listBills({
-        page: 1,
-        pageSize: 99,
         startDate,
         endDate,
+        page,
+        pageSize,
       });
       setTransactions(res.items);
     } catch (err) {
@@ -50,7 +57,7 @@ export function useTransactions() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [startDate, endDate, pageSize]);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -62,12 +69,20 @@ export function useTransactions() {
   }, []);
 
   useEffect(() => {
-    void Promise.all([fetchBills(), fetchStats()]);
-  }, [fetchBills, fetchStats]);
+    if (withStats) {
+      void Promise.all([fetchBills(), fetchStats()]);
+      return;
+    }
+    void fetchBills();
+  }, [fetchBills, fetchStats, withStats]);
 
   const refetch = useCallback(async () => {
-    await Promise.all([fetchBills(), fetchStats()]);
-  }, [fetchBills, fetchStats]);
+    if (withStats) {
+      await Promise.all([fetchBills(), fetchStats()]);
+      return;
+    }
+    await fetchBills();
+  }, [fetchBills, fetchStats, withStats]);
 
   const addTransaction = async (
     transaction: Omit<Transaction, 'id' | 'createdAt'> & { imageFile?: File },
@@ -84,7 +99,9 @@ export function useTransactions() {
         imageFile: transaction.imageFile,
       });
       setTransactions((prev) => [created as Transaction, ...prev]);
-      await fetchStats();
+      if (withStats) {
+        await fetchStats();
+      }
       return created;
     } catch (err) {
       const msg = (err as { message?: string })?.message ?? '新增账单失败';
@@ -108,7 +125,9 @@ export function useTransactions() {
     try {
       const updated = await updateBill(id, data);
       setTransactions((prev) => prev.map((t) => (t.id === id ? (updated as Transaction) : t)));
-      await fetchStats();
+      if (withStats) {
+        await fetchStats();
+      }
       return updated;
     } catch (err) {
       const msg = (err as { message?: string })?.message ?? '更新账单失败';
@@ -122,7 +141,9 @@ export function useTransactions() {
     try {
       await deleteBill(id);
       setTransactions((prev) => prev.filter((t) => t.id !== id));
-      await fetchStats();
+      if (withStats) {
+        await fetchStats();
+      }
     } catch (err) {
       const msg = (err as { message?: string })?.message ?? '删除账单失败';
       setError(msg);
@@ -153,4 +174,21 @@ export function useTransactions() {
     deleteTransaction,
     getSummary,
   };
+}
+
+export function useHomeTransactions() {
+  const startDate = dayjs().startOf('month').format('YYYY-MM-DD');
+  const endDate = dayjs().endOf('month').format('YYYY-MM-DD');
+  return useTransactions({ startDate, endDate, withStats: true });
+}
+
+type UseHistoryTransactionsOptions = {
+  startDate?: string;
+  endDate?: string;
+  page?:number;
+  pageSize?: number;
+};
+
+export function useHistoryTransactions(options: UseHistoryTransactionsOptions = {}) {
+  return useTransactions({ ...options, withStats: false });
 }

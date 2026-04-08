@@ -1,10 +1,10 @@
-import { useTransactions } from '../hooks/useTransactions';
+import { useHomeTransactions } from '../hooks/useTransactions';
 import { Dashboard } from '../components/Dashboard';
 import { TransactionList } from '../components/TransactionList';
 
 export function HomePage() {
   const { transactions, categories, loading, deleteTransaction, updateTransaction, getSummary } =
-    useTransactions();
+    useHomeTransactions();
   const summary = getSummary();
 
   if (loading) {
