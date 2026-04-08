@@ -1,19 +1,20 @@
-import { IsOptional, IsInt, Min, Max, IsDateString } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsOptional, IsDateString } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class ListBillsQueryDto {
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  page?: number = 1;
+  @Transform(({ value }) => {
+    const parsed = Number(value);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
+  })
+  page?: number;
 
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(100)
-  pageSize?: number = 20;
+  @Transform(({ value }) => {
+    const parsed = Number(value);
+    return Number.isInteger(parsed) && parsed > 0 && parsed <= 100 ? parsed : undefined;
+  })
+  pageSize?: number;
 
   @IsOptional()
   @IsDateString()

@@ -15,7 +15,8 @@ export class BillsService {
   ) {}
 
   async list(uid: number, query: ListBillsQueryDto) {
-    const { page = 1, pageSize = 20, startDate, endDate } = query;
+    const { page, pageSize, startDate, endDate } = query;
+    const shouldPaginate = Number.isInteger(page) && Number.isInteger(pageSize);
     const qb = this.billRepo
       .createQueryBuilder('bill')
       .where('bill.uid = :uid', { uid })
@@ -34,22 +35,24 @@ export class BillsService {
 
     qb.orderBy('bill.time', 'DESC').addOrderBy('bill.created_at', 'DESC');
 
-    const [items, total] = await qb
-      .skip((page - 1) * pageSize)
-      .take(pageSize)
-      .getManyAndCount();
+    if (shouldPaginate) {
+      qb.skip(((page as number) - 1) * (pageSize as number)).take(pageSize as number);
+    }
+
+    const [items, total] = await qb.getManyAndCount();
 
     return {
       items: items.map(toTransactionDto),
       total,
-      page,
-      pageSize,
+      page: shouldPaginate ? page : undefined,
+      pageSize: shouldPaginate ? pageSize : undefined,
     };
   }
 
   /** 查询已删除的账单 */
   async listDeleted(uid: number, query: ListBillsQueryDto) {
-    const { page = 1, pageSize = 20, startDate, endDate } = query;
+    const { page, pageSize, startDate, endDate } = query;
+    const shouldPaginate = Number.isInteger(page) && Number.isInteger(pageSize);
     const qb = this.billRepo
       .createQueryBuilder('bill')
       .where('bill.uid = :uid', { uid })
@@ -68,16 +71,17 @@ export class BillsService {
 
     qb.orderBy('bill.time', 'DESC').addOrderBy('bill.created_at', 'DESC');
 
-    const [items, total] = await qb
-      .skip((page - 1) * pageSize)
-      .take(pageSize)
-      .getManyAndCount();
+    if (shouldPaginate) {
+      qb.skip(((page as number) - 1) * (pageSize as number)).take(pageSize as number);
+    }
+
+    const [items, total] = await qb.getManyAndCount();
 
     return {
       items: items.map(toTransactionDto),
       total,
-      page,
-      pageSize,
+      page: shouldPaginate ? page : undefined,
+      pageSize: shouldPaginate ? pageSize : undefined,
     };
   }
 
