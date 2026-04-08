@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import { useHistoryTransactions } from '../hooks/useTransactions';
 import { TransactionList } from '../components/TransactionList';
-import { Label } from 'ui/react';
+import { Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from 'ui/react';
 
 type TimeRange = '7d' | '30d' | '90d' | 'all';
 
@@ -41,30 +41,30 @@ export function HistoryPage() {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="history-time-range">时间范围</Label>
-          <select
-            id="history-time-range"
-            className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value as TimeRange)}
-          >
-            <option value="7d">近一周</option>
-            <option value="30d">近一月</option>
-            <option value="90d">近三月</option>
-            <option value="all">全部时间</option>
-          </select>
+          <Select value={timeRange} onValueChange={(value) => setTimeRange(value as TimeRange)}>
+            <SelectTrigger id="history-time-range">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7d">近一周</SelectItem>
+              <SelectItem value="30d">近一月</SelectItem>
+              <SelectItem value="90d">近三月</SelectItem>
+              <SelectItem value="all">全部时间</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-2">
           <Label htmlFor="history-limit">条数限制</Label>
-          <select
-            id="history-limit"
-            className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-            value={String(limit)}
-            onChange={(e) => setLimit(Number(e.target.value))}
-          >
-            <option value="50">仅查询50条</option>
-            <option value="100">仅查询100条</option>
-            <option value="200">仅查询200条</option>
-          </select>
+          <Select value={String(limit)} onValueChange={(value) => setLimit(Number(value))}>
+            <SelectTrigger id="history-limit">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="50">仅查询50条</SelectItem>
+              <SelectItem value="100">仅查询100条</SelectItem>
+              <SelectItem value="200">仅查询200条</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
